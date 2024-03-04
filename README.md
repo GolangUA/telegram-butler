@@ -1,4 +1,4 @@
-# Telegram Butler
+# :airplane: Telegram Butler
 
 [![CI Status](https://github.com/GolangUA/telegram-butler/actions/workflows/ci.yml/badge.svg)](https://github.com/GolangUA/telegram-butler/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GolangUA_telegram-butler&metric=alert_status)](https://sonarcloud.io/dashboard?id=GolangUA_telegram-butler)
