@@ -1,0 +1,217 @@
+# Options for analysis running
+run:
+  # Timeout for analysis, e.g. 30s, 5m.
+  # Default: 1m
+  timeout: 5m
+
+# Output configuration options
+output:
+  # Sort results by: filepath, line and column
+  sort-results: true
+
+# Enabled/disabled linters
+linters:
+  enable-all: true
+  disable:
+    # Disabled because not relevant
+    - cyclop # Checks function and package cyclomatic complexity
+    - containedctx # containedctx is a linter that detects struct contained context.Context field
+    - contextcheck # Check whether the function uses a non-inherited context
+    - depguard # Go linter that checks if package imports are in a list of acceptable packages
+    - dupl # Tool for code clone detection
+    - exhaustruct # Checks if all structure fields are initialized
+    - gochecknoglobals # check that no global variables exist
+    - godot # Check if comments end in a period
+    - godox # Tool for detection of FIXME, TODO and other comment keywords
+    - goerr113 # Golang linter to check the errors handling expressions
+    - gomnd # An analyzer to detect magic numbers
+    - ireturn # Accept Interfaces, Return Concrete Types
+    - interfacebloat # A linter that checks the number of methods inside an interface
+    - maintidx # Maintidx measures the maintainability index of each function
+    - nakedret # Finds naked returns in functions greater than a specified function length
+    - nlreturn # nlreturn checks for a new line before return and branch statements to increase code clarity
+    - noctx # noctx finds sending http request without context.Context
+    - nonamedreturns # Reports all named returns
+    - paralleltest # paralleltest detects missing usage of t.Parallel() method in your Go test
+    - tagliatelle # Checks the struct tags
+    - testpackage # linter that makes you use a separate _test package
+    - testableexamples # Linter checks if examples are testable (have an expected output)
+    - varnamelen # checks that the length of a variable's name matches its scope
+    - wrapcheck # Checks that errors returned from external packages are wrapped
+    - wsl # Whitespace Linter - Forces you to use empty lines!
+
+    # Disabled because deprecated
+    - deadcode # Finds unused code
+    - exhaustivestruct # Checks if all struct's fields are initialized
+    - golint # Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes
+    - ifshort # Checks that your code uses short syntax for if-statements whenever possible
+    - interfacer # Linter that suggests narrower interface types
+    - maligned # Tool to detect Go structs that would take less memory if their fields were sorted
+    - nosnakecase # nosnakecase is a linter that detects snake case of variable naming and function name.
+    - scopelint # Scopelint checks for unpinned variables in go programs
+    - structcheck # Finds unused struct fields
+    - varcheck # Finds unused global variables and constants
+
+    # To see a list of enabled/disabled by current configuration linters:
+    # golangci-lint linters
+
+# Settings of specific linters
+linters-settings:
+  govet: # Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not
+    # Enable all analyzers.
+    # Default: false
+    enable-all: true
+    # Disable analyzers by name.
+    # Run `go tool vet help` to see all analyzers.
+    # Default: []
+    disable:
+      - composites # check for unkeyed composite literals
+      - fieldalignment # check for struct field alignments
+  misspell: # Finds commonly misspelled English words in comments
+    # Correct spellings using locale preferences for US or UK.
+    # Default is to use a neutral variety of English.
+    # Setting locale to US will correct the British spelling of 'colour' to 'color'.
+    locale: US
+  errcheck: # Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be
+    # critical bugs in some cases.
+    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: true
+  lll: # Reports long lines
+    # Max line length, lines longer will be reported. Default is 120.
+    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+    line-length: 120
+    # Tab width in spaces. Default to 1.
+    # tabulation - 4 spaces. the end.
+    tab-width: 4
+  staticcheck: # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
+    # Include tests in the analysis.
+    tests: true
+  funlen: # Tool for detection of long functions
+    lines: 140
+    statements: 60
+  stylecheck: # Stylecheck is a replacement for golint.
+    # STxxxx checks in https://staticcheck.io/docs/configuration/options/#checks
+    # Default: ["*"]
+    checks: [ "all", "-ST1000", "-ST1003" ]
+  exhaustive: # check exhaustiveness of enum switch statements
+    # Presence of "default" case in switch statements satisfies exhaustiveness,
+    # even if all enum members are not listed
+    default-signifies-exhaustive: true
+  revive:
+    # Enable all available rules.
+    # Default: false
+    enable-all-rules: true
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#add-constant
+      - name: add-constant
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#argument-limit
+      - name: argument-limit
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#banned-characters
+      - name: banned-characters
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bare-return
+      - name: bare-return
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cognitive-complexity
+      - name: cognitive-complexity
+        disabled: true # Duplicate: gocognit
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#comment-spacings
+      - name: comment-spacings
+        severity: warning
+        disabled: false
+        arguments:
+          - nolint
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cyclomatic
+      - name: cyclomatic
+        disabled: true # Duplicate: gocyclo
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#confusing-naming
+      - name: confusing-naming
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
+      - name: exported
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-alias-naming
+      - name: import-alias-naming
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#file-header
+      - name: file-header
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-result-limit
+      - name: function-result-limit
+        severity: warning
+        disabled: false
+        arguments: [ 4 ]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-length
+      - name: function-length
+        disabled: true # Duplicate: funlen
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#flag-parameter
+      - name: flag-parameter
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
+      - name: import-shadowing
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
+      - name: line-length-limit
+        disabled: true # Duplicate: lll
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#max-public-structs
+      - name: max-public-structs
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#modifies-value-receiver
+      - name: modifies-value-receiver
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#package-comments
+      - name: package-comments
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
+      - name: unused-receiver
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#var-naming
+      - name: var-naming
+        disabled: true
+  gci: # Gci control golang package import order and make it always deterministic.
+    sections:
+      - standard
+      - default
+      - prefix(github.com/GolangUA/telegram-butler)
+  gocyclo: # Computes and checks the cyclomatic complexity of functions
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 40
+  gocognit: # Computes and checks the cognitive complexity of functions
+    # Minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 40
+  nestif:
+    # Minimal complexity of if statements to report.
+    # Default: 5
+    min-complexity: 7
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude lll issues for long lines with go:generate
+    - source: "^//go:generate "
+      linters:
+        - lll
+
+    # Exclude liters for test files
+    - path: "_test\\.go$"
+      linters:
+        - funlen
+
+  # Independently of option `exclude` we use default exclude patterns,
+  # it can be disabled by this option. To list all
+  # excluded by default patterns execute `golangci-lint run --help`.
+  # Default value for this option is true.
+  exclude-use-default: false
+
+  # Maximum issues count per one linter.
+  # Set to 0 to disable.
+  # Default: 50
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text.
+  # Set to 0 to disable.
+  # Default: 3
+  max-same-issues: 0

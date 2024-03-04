@@ -1,0 +1,127 @@
+version: 3
+
+silent: true
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list-all
+
+  pre-commit:
+    desc: "Run generators, formatters, linters, tests"
+    cmds:
+      - task: generate
+      - task: format
+      - task: lint
+      - task: test
+
+  format:
+    desc: "Run formatters"
+    deps: [ install:gofumpt, install:gci ]
+    aliases: [ fmt ]
+    cmds:
+      - echo "Running formatters..."
+      - go mod tidy
+      - gofumpt -l -w .
+      - |
+        gci write \
+        --skip-generated \
+        --section standard \
+        --section default \
+        --section "prefix(github.com/GolangUA/telegram-butler)" \
+        $(go list -f "{{`{{.Dir}}`}}" ./...)
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+
+  lint:
+    desc: "Run golangci-lint"
+    deps: [ install:lint ]
+    cmds:
+      - echo "Running linters..."
+      - golangci-lint run
+    sources:
+      - .golangci.yaml
+      - ./**/*.go
+      - go.mod
+      - go.sum
+
+  lint:list:
+    desc: "Run golangci-lint linters (print enabled & disabled linters)"
+    deps: [ install:lint ]
+    cmds:
+      - golangci-lint linters
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - echo "Running tests..."
+      - mkdir -p bin
+      - go test -coverprofile bin/cover.out ./...
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+    generates:
+      - bin/cover.out
+
+  test:cover:
+    desc: "Run tests & show coverage"
+    deps:
+      - test
+    cmds:
+      - go tool cover -func bin/cover.out
+
+  test:race:
+    desc: "Run tests with a race flag"
+    cmds:
+      - go test -race -count=8 -failfast ./...
+
+  generate:
+    desc: "Generate (used for mock generation)"
+    deps: [ install:mock ]
+    cmds:
+      - echo "Running generators..."
+      - go generate ./...
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+
+  install:
+    desc: "Install all tools"
+    deps:
+      - install:lint
+      - install:gofumpt
+      - install:gci
+      - install:mock
+
+  install:lint:
+    desc: "Install golangci-lint"
+    cmds:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    status:
+      - command -v golangci-lint
+
+  install:gofumpt:
+    desc: "Install gofumpt"
+    cmds:
+      - go install mvdan.cc/gofumpt@latest
+    status:
+      - command -v gofumpt
+
+  install:gci:
+    desc: "Install gci"
+    cmds:
+      - go install github.com/daixiang0/gci@latest
+    status:
+      - command -v gci
+
+  install:mock:
+    desc: "Install mockgen"
+    cmds:
+      - go install go.uber.org/mock/mockgen@latest
+    status:
+      - command -v mockgen

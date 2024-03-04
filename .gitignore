@@ -1,0 +1,10 @@
+# IDE files
+.idea/
+.vscode/
+.DS_Store/
+
+# Taskfile
+.task/
+
+# Binaries & produced files
+bin/
