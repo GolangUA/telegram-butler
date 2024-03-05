@@ -21,6 +21,7 @@ linters:
     - dupl # Tool for code clone detection
     - exhaustruct # Checks if all structure fields are initialized
     - gochecknoglobals # check that no global variables exist
+    - gochecknoinits # Checks that no init functions are present in Go code.
     - godot # Check if comments end in a period
     - godox # Tool for detection of FIXME, TODO and other comment keywords
     - goerr113 # Golang linter to check the errors handling expressions
@@ -114,6 +115,9 @@ linters-settings:
         disabled: true
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bare-return
       - name: bare-return
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#blank-imports
+      - name: blank-imports
         disabled: true
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cognitive-complexity
       - name: cognitive-complexity
