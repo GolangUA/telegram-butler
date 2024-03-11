@@ -10,3 +10,25 @@
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=GolangUA_telegram-butler&metric=ncloc)](https://sonarcloud.io/dashboard?id=GolangUA_telegram-butler)
 
 Telegram bot for managing GolangUA community
+
+## Local development
+
+1. Create `.env` file and provide all needed environment variables
+
+    ```dotenv
+    NGROK_AUTHTOKEN=ngrok-token
+    BOT_TOKEN=telegram-bot-token
+    ```
+   > To get `NGROK_AUTHTOKEN` visit: https://dashboard.ngrok.com/get-started/your-authtoken
+
+2. Run
+
+   ```shell
+   go run -tags local ./cmd/telegram-butler/
+   ```
+
+   Or
+
+   ```shell
+   task run:local
+   ```

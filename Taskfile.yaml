@@ -16,6 +16,11 @@ tasks:
       - task: lint
       - task: test
 
+  run:local:
+    desc: "Run service locally"
+    cmds:
+      - go run -tags local ./cmd/telegram-butler/
+
   format:
     desc: "Run formatters"
     deps: [ install:gofumpt, install:gci ]
