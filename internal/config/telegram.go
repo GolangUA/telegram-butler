@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/GolangUA/telegram-butler/pkg/module/telegram"
+	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
 func Bot() telegram.BotConfig {

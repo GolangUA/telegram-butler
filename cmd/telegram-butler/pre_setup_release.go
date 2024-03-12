@@ -5,7 +5,7 @@ package main
 import (
 	"context"
 
-	"github.com/GolangUA/telegram-butler/pkg/module/logger"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
 func preSetup(_ context.Context, _ logger.Logger) error {

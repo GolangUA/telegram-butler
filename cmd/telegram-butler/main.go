@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/signal"
 
-	_ "github.com/GolangUA/telegram-butler/pkg/config"
-	"github.com/GolangUA/telegram-butler/pkg/module/logger"
+	_ "github.com/GolangUA/telegram-butler/internal/config"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
 func main() {

@@ -7,7 +7,7 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
-	"github.com/GolangUA/telegram-butler/pkg/module/logger"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
 func Register(bh *th.BotHandler) {

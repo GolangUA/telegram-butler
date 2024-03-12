@@ -12,7 +12,7 @@ import (
 	"golang.ngrok.com/ngrok"
 	"golang.ngrok.com/ngrok/config"
 
-	"github.com/GolangUA/telegram-butler/pkg/module/logger"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
 func preSetup(ctx context.Context, log logger.Logger) error {

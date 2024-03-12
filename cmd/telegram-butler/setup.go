@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/GolangUA/telegram-butler/pkg/config"
-	"github.com/GolangUA/telegram-butler/pkg/handler/echo"
-	"github.com/GolangUA/telegram-butler/pkg/module/logger"
-	"github.com/GolangUA/telegram-butler/pkg/module/telegram"
+	"github.com/GolangUA/telegram-butler/internal/config"
+	"github.com/GolangUA/telegram-butler/internal/handler/echo"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
+	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
 func setup(ctx context.Context, log logger.Logger) (run func() error, stop func() error, err error) {
