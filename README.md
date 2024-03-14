@@ -13,7 +13,7 @@ Telegram bot for managing GolangUA community
 
 ## Local development
 
-1. Create `.env` file and provide all needed environment variables
+1. Update the values of all needed environment variables in `.env.local` file:
 
     ```dotenv
     NGROK_AUTHTOKEN=ngrok-token

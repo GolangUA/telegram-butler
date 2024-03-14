@@ -8,6 +8,3 @@
 
 # Binaries & produced files
 bin/
-
-# Environment
-.env

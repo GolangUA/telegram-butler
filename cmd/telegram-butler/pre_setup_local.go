@@ -16,7 +16,12 @@ import (
 )
 
 func preSetup(ctx context.Context, log logger.Logger) error {
-	viper.SetDefault("port", "8080")
+	viper.SetConfigFile(".env.local")
+	viper.SetConfigType("env")
+
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("read config: %w", err)
+	}
 
 	fw, err := ngrok.ListenAndForward(
 		ctx,
