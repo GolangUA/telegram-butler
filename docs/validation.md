@@ -40,14 +40,15 @@ type Message struct {
 
 	// ForwardOrigin - Optional. Information about the original message for forwarded messages
 	ForwardOrigin MessageOrigin `json:"forward_origin,omitempty"`
-    // And a looot more, but it's useless in our case
+
+    // And a lot more, but it's useless in our case
     // ...
 }
 ```
 
 Using this approach we'll get the following flow:
 
-GolangUA group is totally private -> User send a command DIRECTLY to our bot. (i.E /join) -> Bot perform checks on a nickname/bio (russian validation) -> Bot generates invite link to the GolangUA with limit on join request -> Bot sends a following message: "Clicking this button you agree that Russia is aggressor, Crimea and Donbass is Ukraine and Putin is khyilo" and attach interactive button with invite link -> User click this button and successfully pases all the checks and going directly to the group (we performed two checks in one, checking if this a bot by asking for a button click, and by clicking a button we assume that user agree with over terms and supports Ukraine)
+GolangUA group is totally private, no way to join with some link, etc. -> User send a command DIRECTLY to our bot. (i.E /join) -> Bot perform checks on a nickname (russian validation: checking on forbidden words/emojis etc.) -> Bot generates invite link to the GolangUA with limit on join request -> Bot sends a following or a similar message: "Clicking this button you agree that Russia is aggressor, Crimea and Donbass is Ukraine and Putin is khyilo" and attaches interactive button with invite link -> User click this button and successfully pases all the checks and going directly to the group (we performed two checks in one, checking if this a bot by asking for a button click, and by clicking a button we assume that user agree with over terms and supports Ukraine)
 
 Pros:
 
@@ -59,8 +60,6 @@ Cons:
 - The flow is quite complicated comparing to the second option
 
 ## Proposal #2
-
-Using this approach we'll get the following flow:
 
 Information available:
 
@@ -92,11 +91,13 @@ type ChatJoinRequest struct {
 
 ```
 
-User send a join request -> Bot perform checks on a nickname (russian validation) -> If it's OK accept it -> Perform additional validation: ask to calculate a simple equation or give a response to the dummy question (bot validation) directly in GolangUA group
+Using this approach we'll get the following flow:
+
+User send a join request -> Bot perform the same checks on a nickname/bio as in previous proposal (russian validation) -> If it's OK accept it -> Perform additional validation: ask to calculate a simple equation or give a response to the dummy question (bot validation) directly in GolangUA group
 
 Pros:
 
-- Time to implement.
+- Less time to implement.
 - We have access to the user bio without any addition requests. Therefore we can perform russian validation based on bio too.
 
 Cons:
