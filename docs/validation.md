@@ -48,7 +48,12 @@ type Message struct {
 
 Using this approach we'll get the following flow:
 
-GolangUA group is totally private, no way to join with some link, etc. -> User send a command DIRECTLY to our bot. (i.E /join) -> Bot perform checks on a nickname (russian validation: checking on forbidden words/emojis etc.) -> Bot generates invite link to the GolangUA with limit on join request -> Bot sends a following or a similar message: "Clicking this button you agree that Russia is aggressor, Crimea and Donbass is Ukraine and Putin is khyilo" and attaches interactive button with invite link -> User click this button and successfully pases all the checks and going directly to the group (we performed two checks in one, checking if this a bot by asking for a button click, and by clicking a button we assume that user agree with over terms and supports Ukraine)
+GolangUA group is totally private, no way to join with some link, etc. -> User send a command DIRECTLY to our bot. (i.E /join) -> Bot perform checks on a nickname (russian validation: checking on forbidden words/emojis etc.) -> Bot generates invite link to the GolangUA with limit on join request -> Bot sends a following or a similar message: "Clicking this button you agree that Russia is aggressor, Crimea and Donbass is Ukraine and Putin is khyilo" and attaches interactive button with the generated earlier invite link -> User click this button and successfully pases all the checks and going directly to the group (we performed two checks in one, checking if this a bot by asking for a button click, and by clicking a button we assume that user agree with over terms and supports Ukraine)
+
+Negative cases:
+
+    - If user hadn't click on a invite button -> Do nothing
+    - If user has forbidden symbols in nickname -> Send a message that user hasn't passed validation and if he think that was by mistake he needs to contact admin (I.E. Viktor) -> Ignore following messages from this user
 
 Pros:
 
@@ -93,14 +98,19 @@ type ChatJoinRequest struct {
 
 Using this approach we'll get the following flow:
 
-User send a join request -> Bot perform the same checks on a nickname/bio as in previous proposal (russian validation) -> If it's OK accept it -> Perform additional validation: ask to calculate a simple equation or give a response to the dummy question (bot validation) directly in GolangUA group
+User send a join request -> Bot listens on ChatJoinRequest update -> Bot perform the same checks on a nickname/bio as in previous proposal (russian validation) -> If it's OK accept it -> Perform additional validation: ask to calculate a simple equation or give a response to the dummy question (bot validation) directly in GolangUA group with some deadline -> If user answered we can assume that all checks are passed
+
+Negative cases:
+
+    - If user has forbidden symbols in nickname -> Don't accept
+    - If user hasn't answered dummy question/solved the equation -> Kick him out?
 
 Pros:
 
 - Less time to implement.
-- We have access to the user bio without any addition requests. Therefore we can perform russian validation based on bio too.
 
 Cons:
 
+- We're limited with russians validation. We can make a decision only based on user info
 - Bot validation (dummy questions etc) will be visible to other users
 - We need to define a timeout for bot validation. I.E: if user hadn't respond during 15 min after bot accepted his request he'll be kicked. Of course, this type of timeout will have a lot of false positives.
