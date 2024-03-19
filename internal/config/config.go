@@ -3,10 +3,10 @@ package config
 import "github.com/spf13/viper"
 
 func init() {
-	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 	viper.SetDefault("port", "8080")
 
+	viper.MustBindEnv("port", "PORT")
 	viper.MustBindEnv("bot-token", "BOT_TOKEN")
 	viper.MustBindEnv("webhook-url", "WEBHOOK_URL")
 	viper.MustBindEnv("project-id", "PROJECT_ID")

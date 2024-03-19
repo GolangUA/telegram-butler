@@ -6,5 +6,9 @@
 # Taskfile
 .task/
 
+# Enviement files
+*.env
+~example.env
+
 # Binaries & produced files
 bin/
