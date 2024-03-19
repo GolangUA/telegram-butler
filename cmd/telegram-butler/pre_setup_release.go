@@ -14,11 +14,6 @@ import (
 )
 
 func preSetup(ctx context.Context, _ logger.Logger) error {
-	viper.SetConfigFile(".env")
-	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("read config: %w", err)
-	}
-
 	secretManager, err := secrets.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize secret manager client: %w", err)
