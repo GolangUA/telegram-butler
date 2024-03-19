@@ -6,7 +6,7 @@
 # Taskfile
 .task/
 
-# Enviement files
+# Environment files
 *.env
 ~example.env
 
