@@ -16,11 +16,7 @@ import (
 )
 
 func preSetup(ctx context.Context, log logger.Logger) error {
-	viper.SetConfigFile(".env.local")
-	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("read config: %w", err)
-	}
-
+	viper.AutomaticEnv()
 	fw, err := ngrok.ListenAndForward(
 		ctx,
 		&url.URL{
