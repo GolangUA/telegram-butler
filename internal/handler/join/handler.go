@@ -11,13 +11,6 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-const TermsOfUse = `
-Приймаючи запрошення у цю групу ви автоматично:
-	1. Засуджуєте війну рф проти України.
-	2. Не визнаєте тимчасовано окупованії українські території субʼєктом рф.
-	3. Приймаєте правила спільноти (правила групи: /rules).
-`
-
 const (
 	AgreeText     = "Згоден"
 	DontAgreeText = "Не згоден"
@@ -39,7 +32,6 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		request.From.ID,
 	)
 
-	tu.Keyboard()
 	k := tu.InlineKeyboard(
 		tu.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
@@ -53,7 +45,7 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		),
 	)
 
-	msg := tu.Message(tu.ID(request.From.ID), TermsOfUse).WithReplyMarkup(k).WithProtectContent()
+	msg := tu.Message(tu.ID(request.From.ID), termsOfUse).WithReplyMarkup(k).WithProtectContent()
 	if _, err := bot.SendMessage(msg); err != nil {
 		log.Errorf("Send terms of use error: %v", err)
 	}

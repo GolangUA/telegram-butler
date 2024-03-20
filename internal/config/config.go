@@ -5,6 +5,7 @@ import "github.com/spf13/viper"
 func init() {
 	viper.AutomaticEnv()
 	viper.SetDefault("port", "8080")
+	viper.SetDefault("admin-username", "vpakh")
 
 	viper.MustBindEnv("port", "PORT")
 	viper.MustBindEnv("bot-token", "BOT_TOKEN")
