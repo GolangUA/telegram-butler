@@ -17,9 +17,13 @@ func Webhook(ctx context.Context, cfg WebhookConfig, bot *telego.Bot) (<-chan te
 	updates, err := bot.UpdatesViaWebhook(
 		cfg.WebhookURL.Path,
 		telego.WithWebhookSet(&telego.SetWebhookParams{
-			URL:            cfg.WebhookURL.String(),
-			AllowedUpdates: []string{telego.MessageUpdates},
-			SecretToken:    secretToken,
+			URL: cfg.WebhookURL.String(),
+			AllowedUpdates: []string{
+				telego.MessageUpdates,
+				telego.ChatJoinRequestUpdates,
+				telego.CallbackQueryUpdates,
+			},
+			SecretToken: secretToken,
 		}),
 		telego.WithWebhookContext(ctx),
 	)
