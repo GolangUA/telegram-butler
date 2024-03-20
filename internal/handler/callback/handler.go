@@ -2,8 +2,6 @@ package callback
 
 import (
 	"context"
-	"strconv"
-	"strings"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -12,7 +10,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-const BanMessage = "Ваш запит відхилено. У разі помилки зверніться до адміністратора."
+const BanMessage = "Ваш запит відхилено. У разі помилки зверніться до адміністратора (@vpakh)."
 
 const (
 	AgreeDecision   = "agree"
@@ -39,19 +37,12 @@ func (h *handler) callbackQuery(
 		query.From.ID,
 	)
 
-	splits := strings.Split(query.Data, "_")
-	if len(splits) != 2 {
-		log.Errorf("Invalid callback query data token: %v", splits)
-		return
-	}
-
-	groupID, err := strconv.ParseInt(splits[1], 10, 64)
+	decision, groupID, err := parseDecisionAndGroupID(query.Data)
 	if err != nil {
-		log.Errorf("Invalid groupID in callback query data: %s", splits[1])
+		log.Errorf("Parsing callback query data failed: %v", err)
 		return
 	}
 
-	decision := splits[0]
 	switch decision {
 	case AgreeDecision:
 		err := bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
@@ -63,10 +54,27 @@ func (h *handler) callbackQuery(
 		}
 
 	case DeclineDecision:
-		_, err := bot.SendMessage(tu.Message(tu.ID(query.From.ID), BanMessage))
+		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
+			UserID: query.From.ID,
+			ChatID: tu.ID(groupID),
+		})
+		if err != nil {
+			log.Errorf("Decline join request error: %v", err)
+			return
+		}
+
+		_, err = bot.SendMessage(tu.Message(tu.ID(query.From.ID), BanMessage))
 		if err != nil {
 			log.Errorf("Send ban message error: %v", err)
+			return
 		}
-		// TODO: ban
+
+		err = bot.BanChatMember(&telego.BanChatMemberParams{
+			ChatID: tu.ID(groupID),
+			UserID: query.From.ID,
+		})
+		if err != nil {
+			log.Errorf("Ban chat member error: %v", err)
+		}
 	}
 }

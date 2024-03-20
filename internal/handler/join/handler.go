@@ -11,7 +11,12 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-const TermsOfUse = "Путін хуйло!"
+const TermsOfUse = `
+Приймаючи запрошення у цю групу ви автоматично:
+	1. Засуджуєте війну рф проти України.
+	2. Не визнаєте тимчасовано окупованії українські території субʼєктом рф.
+	3. Приймаєте правила спільноти (правила групи: /rules).
+`
 
 const (
 	AgreeText     = "Згоден."
