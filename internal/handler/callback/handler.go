@@ -64,13 +64,5 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Errorf("Send ban message error: %v", err)
 			return
 		}
-
-		err = bot.BanChatMember(&telego.BanChatMemberParams{
-			ChatID: tu.ID(data.GroupID),
-			UserID: query.From.ID,
-		})
-		if err != nil {
-			log.Errorf("Ban chat member error: %v", err)
-		}
 	}
 }
