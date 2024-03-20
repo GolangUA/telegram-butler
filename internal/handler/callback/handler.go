@@ -7,15 +7,11 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
+	"github.com/GolangUA/telegram-butler/internal/handler/callback/callbackdata"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
 const BanMessage = "Ваш запит відхилено. У разі помилки зверніться до адміністратора (@vpakh)."
-
-const (
-	AgreeDecision   = "agree"
-	DeclineDecision = "decline"
-)
 
 func Register(bh *th.BotHandler) {
 	h := &handler{}
@@ -33,14 +29,14 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 		query.From.ID,
 	)
 
-	data, err := parseDecisionAndGroupID(query.Data)
+	data, err := callbackdata.Parse(query.Data)
 	if err != nil {
 		log.Errorf("Parsing callback query data failed: %v", err)
 		return
 	}
 
 	switch data.Decision {
-	case AgreeDecision:
+	case callbackdata.AgreeDecision:
 		err := bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
 			UserID: query.From.ID,
 			ChatID: tu.ID(data.GroupID),
@@ -49,7 +45,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Errorf("Join request approve error: %v", err)
 		}
 
-	case DeclineDecision:
+	case callbackdata.DeclineDecision:
 		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
 			UserID: query.From.ID,
 			ChatID: tu.ID(data.GroupID),

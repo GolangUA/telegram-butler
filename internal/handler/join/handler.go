@@ -2,12 +2,12 @@ package join
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
+	"github.com/GolangUA/telegram-butler/internal/handler/callback/callbackdata"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
@@ -44,11 +44,11 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		tu.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
 				Text:         AgreeText,
-				CallbackData: fmt.Sprintf("agree_%v", request.Chat.ID),
+				CallbackData: callbackdata.NewAgreeWithGroupID(request.Chat.ID),
 			},
 			telego.InlineKeyboardButton{
 				Text:         DontAgreeText,
-				CallbackData: fmt.Sprintf("decline_%v", request.Chat.ID),
+				CallbackData: callbackdata.NewDeclineWithGroupID(request.Chat.ID),
 			},
 		),
 	)

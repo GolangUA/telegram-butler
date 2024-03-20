@@ -1,4 +1,4 @@
-package callback
+package callbackdata
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-type CallbackData struct {
+type Payload struct {
 	Decision string
 	GroupID  int64
 }
 
-func parseDecisionAndGroupID(callbackData string) (*CallbackData, error) {
-	splits := strings.Split(callbackData, "_")
+func Parse(data string) (*Payload, error) {
+	splits := strings.Split(data, "_")
 	if len(splits) != 2 {
 		return nil, fmt.Errorf("invalid callback query data token: %v", splits)
 	}
@@ -27,5 +27,5 @@ func parseDecisionAndGroupID(callbackData string) (*CallbackData, error) {
 		return nil, fmt.Errorf("invalid callback data for terms of use decision: %v", decision)
 	}
 
-	return &CallbackData{decision, groupID}, nil
+	return &Payload{decision, groupID}, nil
 }
