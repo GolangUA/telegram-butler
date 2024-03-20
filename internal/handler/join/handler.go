@@ -19,12 +19,12 @@ const TermsOfUse = `
 `
 
 const (
-	AgreeText     = "Згоден."
-	DontAgreeText = "Не згоден."
+	AgreeText     = "Згоден"
+	DontAgreeText = "Не згоден"
 )
 
 func Register(bh *th.BotHandler) {
-	h := handler{}
+	h := &handler{}
 	bh.HandleChatJoinRequestCtx(h.chatJoinRequest)
 }
 

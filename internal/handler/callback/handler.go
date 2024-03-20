@@ -18,7 +18,7 @@ const (
 )
 
 func Register(bh *th.BotHandler) {
-	h := handler{}
+	h := &handler{}
 	bh.HandleCallbackQueryCtx(h.callbackQuery)
 }
 
