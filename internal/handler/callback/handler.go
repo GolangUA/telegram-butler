@@ -20,7 +20,6 @@ func Register(bh *th.BotHandler) {
 type handler struct{}
 
 func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query telego.CallbackQuery) {
-	bot.AnswerCallbackQuery(tu.CallbackQuery(query.ID))
 	log := logger.FromContext(ctx)
 	log.Infof(
 		"[CALLBACK QUERY] username: %s, firstname: %s, id: %v",
@@ -28,6 +27,10 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 		query.From.FirstName,
 		query.From.ID,
 	)
+
+	if err := bot.AnswerCallbackQuery(tu.CallbackQuery(query.ID)); err != nil {
+		log.Errorf("Sending answer to callback query failed: %v", err)
+	}
 
 	data, err := callbackdata.Parse(query.Data)
 	if err != nil {
