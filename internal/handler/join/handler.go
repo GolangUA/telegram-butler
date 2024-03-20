@@ -30,11 +30,7 @@ func Register(bh *th.BotHandler) {
 
 type handler struct{}
 
-func (h *handler) chatJoinRequest(
-	ctx context.Context,
-	bot *telego.Bot,
-	request telego.ChatJoinRequest,
-) {
+func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request telego.ChatJoinRequest) {
 	log := logger.FromContext(ctx)
 	log.Infof(
 		"[JOIN REQUEST] username: %s, firstname: %s, id: %v",

@@ -24,11 +24,7 @@ func Register(bh *th.BotHandler) {
 
 type handler struct{}
 
-func (h *handler) callbackQuery(
-	ctx context.Context,
-	bot *telego.Bot,
-	query telego.CallbackQuery,
-) {
+func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query telego.CallbackQuery) {
 	log := logger.FromContext(ctx)
 	log.Infof(
 		"[CALLBACK QUERY] username: %s, firstname: %s, id: %v",
@@ -37,17 +33,17 @@ func (h *handler) callbackQuery(
 		query.From.ID,
 	)
 
-	decision, groupID, err := parseDecisionAndGroupID(query.Data)
+	data, err := parseDecisionAndGroupID(query.Data)
 	if err != nil {
 		log.Errorf("Parsing callback query data failed: %v", err)
 		return
 	}
 
-	switch decision {
+	switch data.Decision {
 	case AgreeDecision:
 		err := bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
 			UserID: query.From.ID,
-			ChatID: tu.ID(groupID),
+			ChatID: tu.ID(data.GroupID),
 		})
 		if err != nil {
 			log.Errorf("Join request approve error: %v", err)
@@ -56,7 +52,7 @@ func (h *handler) callbackQuery(
 	case DeclineDecision:
 		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
 			UserID: query.From.ID,
-			ChatID: tu.ID(groupID),
+			ChatID: tu.ID(data.GroupID),
 		})
 		if err != nil {
 			log.Errorf("Decline join request error: %v", err)
@@ -70,7 +66,7 @@ func (h *handler) callbackQuery(
 		}
 
 		err = bot.BanChatMember(&telego.BanChatMemberParams{
-			ChatID: tu.ID(groupID),
+			ChatID: tu.ID(data.GroupID),
 			UserID: query.From.ID,
 		})
 		if err != nil {
