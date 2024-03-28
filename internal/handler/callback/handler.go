@@ -48,6 +48,16 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Errorf("Join request approve error: %v", err)
 		}
 
+		msg := getWelcomeMessage(query.From.FirstName, viper.GetString("group-name"))
+		_, err = bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    tu.ID(query.From.ID),
+			ParseMode: telego.ModeHTML,
+			Text:      msg,
+		})
+		if err != nil {
+			log.Errorf("Send welcome message error: %v", err)
+		}
+
 	case callbackdata.DeclineDecision:
 		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
 			UserID: query.From.ID,
@@ -58,7 +68,8 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			return
 		}
 
-		_, err = bot.SendMessage(tu.Message(tu.ID(query.From.ID), getBanMessage(viper.GetString("admin-username"))))
+		msg := getBanMessage(viper.GetString("admin-username"))
+		_, err = bot.SendMessage(tu.Message(tu.ID(query.From.ID), msg))
 		if err != nil {
 			log.Errorf("Send ban message error: %v", err)
 		}
