@@ -1,5 +1,6 @@
 package commands
 
 const (
-	SendRules = "rules"
+	SendRules      = "rules"
+	SendUsefulInfo = "useful"
 )
