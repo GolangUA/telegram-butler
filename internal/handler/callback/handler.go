@@ -48,7 +48,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Errorf("Join request approve error: %v", err)
 		}
 
-		msg := getWelcomeMessage(query.From.FirstName, viper.GetString("channel-name"))
+		msg := getWelcomeMessage(query.From.FirstName, viper.GetString("group-name"))
 		_, err = bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    tu.ID(query.From.ID),
 			ParseMode: telego.ModeHTML,

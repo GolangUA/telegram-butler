@@ -25,6 +25,6 @@ Code of Conduct: https://go.dev/conduct
 Чекаємо тебе за посиланням @%s :)
 `
 
-func getWelcomeMessage(username, channel string) string {
-	return fmt.Sprintf(welcomeMessageFormat, username, channel)
+func getWelcomeMessage(username, group string) string {
+	return fmt.Sprintf(welcomeMessageFormat, username, group)
 }
