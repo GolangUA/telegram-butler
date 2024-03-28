@@ -8,8 +8,8 @@ import (
 
 	"github.com/GolangUA/telegram-butler/internal/config"
 	"github.com/GolangUA/telegram-butler/internal/handler/callback"
-	"github.com/GolangUA/telegram-butler/internal/handler/echo"
 	"github.com/GolangUA/telegram-butler/internal/handler/join"
+	"github.com/GolangUA/telegram-butler/internal/handler/message"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
@@ -36,7 +36,7 @@ func setup(ctx context.Context, log logger.Logger) (run func() error, stop func(
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}
 
-	echo.Register(bh)
+	message.Register(bh)
 	join.Register(bh)
 	callback.Register(bh)
 
