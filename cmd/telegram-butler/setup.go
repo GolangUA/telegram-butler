@@ -10,6 +10,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/callback"
 	"github.com/GolangUA/telegram-butler/internal/handler/join"
 	"github.com/GolangUA/telegram-butler/internal/handler/message"
+	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
@@ -19,6 +20,10 @@ func setup(ctx context.Context, log logger.Logger) (run func() error, stop func(
 	bot, err := telegram.Bot(botCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("bot: %w", err)
+	}
+
+	if err = commands.Sync(bot); err != nil {
+		return nil, nil, fmt.Errorf("sync commands failed: %w", err)
 	}
 
 	webhookCfg, err := config.Webhook()
