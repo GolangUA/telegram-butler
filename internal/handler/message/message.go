@@ -1,5 +1,7 @@
 package message
 
+import "fmt"
+
 //nolint:lll
 const rulesMessage = `
 <b>Правила групи</b>:
@@ -49,3 +51,20 @@ const usefulInfoMessage = `
 
 Більше інформації шукай <a href="https://bit.ly/3XCIKT4">тут</a>.
 `
+
+//nolint:lll
+const helpMessageFormat = `
+Привіт, %s!
+Я бот створений спеціально для спільноти <a href="https://t.me/golang_ua_official">GolangUA</a> з метою полегшення адміністрування.
+
+Наявні команди:
+	- /help: Відправити це повідомлення
+	- /rules: Відправити правила спільноти
+	- /useful: Відправити корисну інформацію (курси, документацію, платформи для навчання) Go
+
+У разі різних питань, неточностей або несправності бота сконтактуйте адміністраторa: @%s.
+`
+
+func getHelpMessage(username, admin string) string {
+	return fmt.Sprintf(helpMessageFormat, username, admin)
+}
