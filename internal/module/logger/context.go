@@ -1,17 +1,20 @@
 package logger
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 type contextKey string
 
 const loggerContextKey contextKey = "__logger"
 
-func ToContext(ctx context.Context, log Logger) context.Context {
+func ToContext(ctx context.Context, log *slog.Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey, log)
 }
 
-func FromContext(ctx context.Context) Logger {
-	log, ok := ctx.Value(loggerContextKey).(Logger)
+func FromContext(ctx context.Context) *slog.Logger {
+	log, ok := ctx.Value(loggerContextKey).(*slog.Logger)
 	if !ok || log == nil {
 		panic("no logger")
 	}
