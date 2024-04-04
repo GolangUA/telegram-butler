@@ -5,17 +5,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/url"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/viper"
 	"golang.ngrok.com/ngrok"
 	"golang.ngrok.com/ngrok/config"
-
-	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-func preSetup(ctx context.Context, log logger.Logger) error {
+func preSetup(ctx context.Context, log *slog.Logger) error {
+	log.Info("Setting up ngrok tunnel")
+
 	fw, err := ngrok.ListenAndForward(
 		ctx,
 		&url.URL{
@@ -28,7 +29,7 @@ func preSetup(ctx context.Context, log logger.Logger) error {
 	if err != nil {
 		return fmt.Errorf("start ngrok tunnel: %w", err)
 	}
-	log.Infof("Ngrok tunnel: %s", fw.URL())
+	log.Info("Ngrok tunnel", slog.String("url", fw.URL()))
 
 	viper.Set("webhook-url", fw.URL()+"/webhook")
 

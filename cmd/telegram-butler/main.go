@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 
@@ -12,25 +13,38 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log := logger.NewSTDLogger()
+	log := slog.New(
+		slog.NewJSONHandler(
+			os.Stdout,
+			&slog.HandlerOptions{
+				Level:     slog.LevelDebug,
+				AddSource: true,
+			},
+		),
+	)
+
 	ctx = logger.ToContext(ctx, log)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
 
-	log.Infof("Starting...")
+	log.Info("Starting Bot...")
 	err := preSetup(ctx, log)
 	if err != nil {
-		log.Fatalf("Pre-setup: %s", err)
+		log.Error("Pre-setup", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	run, stop, err := setup(ctx, log)
 	if err != nil {
-		log.Fatalf("Setup: %s", err)
+		log.Error("Setup", slog.Any("error", err))
+		os.Exit(1)
 	}
+
+	log.Debug("Starting handling queries")
 	go func() {
 		if runErr := run(); runErr != nil {
-			log.Errorf("Run: %s", runErr)
+			log.Error("Run", slog.Any("error", runErr))
 		}
 		sigs <- os.Interrupt
 	}()
@@ -38,14 +52,14 @@ func main() {
 	done := make(chan struct{}, 1)
 	go func() {
 		<-sigs
-		log.Infof("Stopping...")
+		log.Info("Stopping Bot handler...")
 		if stopErr := stop(); stopErr != nil {
-			log.Errorf("Stop: %s", stopErr)
+			log.Error("Stop", slog.Any("error", stopErr))
 		}
 		cancel()
 		done <- struct{}{}
 	}()
 
 	<-done
-	log.Infof("Bye!")
+	log.Info("Finished...")
 }
