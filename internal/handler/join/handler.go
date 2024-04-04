@@ -2,6 +2,7 @@ package join
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -25,12 +26,14 @@ type handler struct{}
 
 func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request telego.ChatJoinRequest) {
 	log := logger.FromContext(ctx)
-	log.Infof(
-		"[JOIN REQUEST] username: %s, firstname: %s, id: %v",
-		request.From.Username,
-		request.From.FirstName,
-		request.From.ID,
-	)
+
+	log = log.With(slog.Group("user",
+		slog.String("username", request.From.Username),
+		slog.String("first_name", request.From.FirstName),
+		slog.Int64("id", request.From.ID),
+	))
+
+	log.Info("[JOIN REQUEST]")
 
 	k := tu.InlineKeyboard(
 		tu.InlineKeyboardRow(
@@ -47,6 +50,6 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 
 	msg := tu.Message(tu.ID(request.From.ID), termsOfUse).WithReplyMarkup(k).WithProtectContent()
 	if _, err := bot.SendMessage(msg); err != nil {
-		log.Errorf("Send terms of use error: %v", err)
+		log.Error("Sending terms of use failed", slog.Any("error", err))
 	}
 }

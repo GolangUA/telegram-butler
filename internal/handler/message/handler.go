@@ -2,6 +2,7 @@ package message
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -22,36 +23,63 @@ type handler struct{}
 
 func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Message) {
 	log := logger.FromContext(ctx)
+
+	log = log.With(slog.Group("user",
+		slog.String("username", message.From.Username),
+		slog.String("first_name", message.From.FirstName),
+		slog.Int64("id", message.From.ID),
+	))
+
+	log.Info("Handling", slog.String("command", "rules"))
+
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
 		ParseMode: telego.ModeHTML,
 		Text:      rulesMessage,
 	})
 	if err != nil {
-		log.Errorf("Send rules message error: %s", err)
+		log.Error("Sending rules message failed", slog.Any("error", err))
 	}
 }
 
 func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message telego.Message) {
 	log := logger.FromContext(ctx)
+
+	log = log.With(slog.Group("user",
+		slog.String("username", message.From.Username),
+		slog.String("first_name", message.From.FirstName),
+		slog.Int64("id", message.From.ID),
+	))
+
+	log.Info("Handling", slog.String("command", "useful"))
+
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
 		ParseMode: telego.ModeHTML,
 		Text:      usefulInfoMessage,
 	})
 	if err != nil {
-		log.Errorf("Send useful info message error: %s", err)
+		log.Error("Sending useful info message failed", slog.Any("error", err))
 	}
 }
 
 func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Message) {
 	log := logger.FromContext(ctx)
+
+	log = log.With(slog.Group("user",
+		slog.String("username", message.From.Username),
+		slog.String("first_name", message.From.FirstName),
+		slog.Int64("id", message.From.ID),
+	))
+
+	log.Info("Handling", slog.String("command", "help"))
+
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
 		ParseMode: telego.ModeHTML,
 		Text:      getHelpMessage(message.From.FirstName, viper.GetString("admin-username")),
 	})
 	if err != nil {
-		log.Errorf("Send help message error: %s", err)
+		log.Error("Sending help message failed", slog.Any("error", err))
 	}
 }
