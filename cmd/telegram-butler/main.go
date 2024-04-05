@@ -13,15 +13,7 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log := slog.New(
-		slog.NewJSONHandler(
-			os.Stdout,
-			&slog.HandlerOptions{
-				Level:     slog.LevelDebug,
-				AddSource: true,
-			},
-		),
-	)
+	log := setupLogger()
 
 	ctx = logger.ToContext(ctx, log)
 

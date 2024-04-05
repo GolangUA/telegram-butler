@@ -16,4 +16,5 @@ func init() {
 	viper.MustBindEnv("project-id", "PROJECT_ID")
 	viper.MustBindEnv("project-region", "PROJECT_REGION")
 	viper.MustBindEnv("k-service", "K_SERVICE")
+	viper.MustBindEnv("log-level", "LOG_LEVEL")
 }
