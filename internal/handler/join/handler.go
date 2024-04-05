@@ -29,7 +29,6 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 
 	log = log.With(slog.Group("user",
 		slog.String("username", request.From.Username),
-		slog.String("first_name", request.From.FirstName),
 		slog.Int64("id", request.From.ID),
 	))
 

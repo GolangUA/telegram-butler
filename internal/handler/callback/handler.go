@@ -25,7 +25,6 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 
 	log = log.With(slog.Group("user",
 		slog.String("username", query.From.Username),
-		slog.String("first_name", query.From.FirstName),
 		slog.Int64("id", query.From.ID),
 	))
 

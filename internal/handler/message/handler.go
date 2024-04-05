@@ -26,7 +26,6 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 
 	log = log.With(slog.Group("user",
 		slog.String("username", message.From.Username),
-		slog.String("first_name", message.From.FirstName),
 		slog.Int64("id", message.From.ID),
 	))
 
@@ -47,7 +46,6 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 
 	log = log.With(slog.Group("user",
 		slog.String("username", message.From.Username),
-		slog.String("first_name", message.From.FirstName),
 		slog.Int64("id", message.From.ID),
 	))
 
@@ -68,7 +66,6 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 
 	log = log.With(slog.Group("user",
 		slog.String("username", message.From.Username),
-		slog.String("first_name", message.From.FirstName),
 		slog.Int64("id", message.From.ID),
 	))
 
