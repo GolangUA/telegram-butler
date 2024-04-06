@@ -29,8 +29,6 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 		slog.Int64("id", message.From.ID),
 	))
 
-	log.Info("Handling", slog.String("command", "rules"))
-
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
 		ParseMode: telego.ModeHTML,
@@ -49,8 +47,6 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 		slog.Int64("id", message.From.ID),
 	))
 
-	log.Info("Handling", slog.String("command", "useful"))
-
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
 		ParseMode: telego.ModeHTML,
@@ -68,8 +64,6 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 		slog.String("username", message.From.Username),
 		slog.Int64("id", message.From.ID),
 	))
-
-	log.Info("Handling", slog.String("command", "help"))
 
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    message.Chat.ChatID(),
