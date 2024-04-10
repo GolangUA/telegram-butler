@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/spf13/viper"
+
 	_ "github.com/GolangUA/telegram-butler/internal/config"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
@@ -13,7 +15,11 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log := setupLogger()
+	log := logger.SetupLogger(
+		viper.GetString("log-level"),
+		viper.GetString("log-format"),
+		viper.GetBool("log-source"),
+	)
 
 	ctx = logger.ToContext(ctx, log)
 
