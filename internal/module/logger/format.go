@@ -7,24 +7,15 @@ import (
 
 func SetupLogger(logLevel string, logFormat string, addSource bool) *slog.Logger {
 	level := StringToLevel(logLevel)
-	var (
-		handler  slog.Handler
-		replAttr func(groups []string, a slog.Attr) slog.Attr
-	)
 
-	// TODO hide token values
-	// replAttr = func(_ []string, a slog.Attr) slog.Attr {
-	// 	if a.Value
-	// 	return a
-	// }
+	var handler slog.Handler
 
 	switch logFormat {
 	case "text":
 		// Setup for plain text formatting (assuming you have a handler for that)
 		opts := &slog.HandlerOptions{
-			AddSource:   addSource,
-			Level:       level,
-			ReplaceAttr: replAttr,
+			AddSource: addSource,
+			Level:     level,
 		}
 		handler = slog.NewTextHandler(os.Stdout, opts)
 	case "json":
@@ -32,17 +23,15 @@ func SetupLogger(logLevel string, logFormat string, addSource bool) *slog.Logger
 		handler = slog.NewJSONHandler(
 			os.Stdout,
 			&slog.HandlerOptions{
-				Level:       level,
-				AddSource:   addSource,
-				ReplaceAttr: replAttr,
+				Level:     level,
+				AddSource: addSource,
 			},
 		)
 	case "prettyjson":
 		opts := PrettyHandlerOptions{
 			SlogOpts: slog.HandlerOptions{
-				Level:       StringToLevel(logLevel),
-				AddSource:   addSource,
-				ReplaceAttr: replAttr,
+				Level:     StringToLevel(logLevel),
+				AddSource: addSource,
 			},
 		}
 		handler = NewPrettyHandler(os.Stdout, opts)
