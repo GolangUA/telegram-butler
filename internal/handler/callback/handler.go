@@ -2,6 +2,7 @@ package callback
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -21,20 +22,21 @@ type handler struct{}
 
 func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query telego.CallbackQuery) {
 	log := logger.FromContext(ctx)
-	log.Infof(
-		"[CALLBACK QUERY] username: %s, firstname: %s, id: %v",
-		query.From.Username,
-		query.From.FirstName,
-		query.From.ID,
-	)
+
+	log = log.With(slog.Group("user",
+		slog.String("username", query.From.Username),
+		slog.Int64("id", query.From.ID),
+	))
+
+	log.Info("[CALLBACK QUERY]")
 
 	if err := bot.AnswerCallbackQuery(tu.CallbackQuery(query.ID)); err != nil {
-		log.Errorf("Sending answer to callback query failed: %v", err)
+		log.Error("Sending answer to callback query failed", slog.Any("error", err))
 	}
 
 	data, err := callbackdata.Parse(query.Data)
 	if err != nil {
-		log.Errorf("Parsing callback query data failed: %v", err)
+		log.Error("Parsing callback query data failed", slog.Any("error", err))
 		return
 	}
 
@@ -45,7 +47,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			ChatID: tu.ID(data.GroupID),
 		})
 		if err != nil {
-			log.Errorf("Join request approve error: %v", err)
+			log.Error("Join request approve error", slog.Any("error", err))
 		}
 
 		msg := getWelcomeMessage(query.From.FirstName, viper.GetString("group-name"))
@@ -55,7 +57,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			Text:      msg,
 		})
 		if err != nil {
-			log.Errorf("Send welcome message error: %v", err)
+			log.Error("Sending welcome message failed", slog.Any("error", err))
 		}
 
 	case callbackdata.DeclineDecision:
@@ -64,14 +66,14 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			ChatID: tu.ID(data.GroupID),
 		})
 		if err != nil {
-			log.Errorf("Decline join request error: %v", err)
+			log.Error("Decline join request failed", slog.Any("error", err))
 			return
 		}
 
 		msg := getBanMessage(viper.GetString("admin-username"))
 		_, err = bot.SendMessage(tu.Message(tu.ID(query.From.ID), msg))
 		if err != nil {
-			log.Errorf("Send ban message error: %v", err)
+			log.Error("Sending ban message failed", slog.Any("error", err))
 		}
 	}
 }

@@ -85,16 +85,13 @@ linters-settings:
     # Tab width in spaces. Default to 1.
     # tabulation - 4 spaces. the end.
     tab-width: 4
-  staticcheck: # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
-    # Include tests in the analysis.
-    tests: true
   funlen: # Tool for detection of long functions
     lines: 140
     statements: 60
   stylecheck: # Stylecheck is a replacement for golint.
     # STxxxx checks in https://staticcheck.io/docs/configuration/options/#checks
     # Default: ["*"]
-    checks: [ "all", "-ST1000", "-ST1003" ]
+    checks: ["all", "-ST1000", "-ST1003"]
   exhaustive: # check exhaustiveness of enum switch statements
     # Presence of "default" case in switch statements satisfies exhaustiveness,
     # even if all enum members are not listed
@@ -147,7 +144,7 @@ linters-settings:
       - name: function-result-limit
         severity: warning
         disabled: false
-        arguments: [ 4 ]
+        arguments: [4]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-length
       - name: function-length
         disabled: true # Duplicate: funlen
@@ -190,6 +187,24 @@ linters-settings:
     # Minimal complexity of if statements to report.
     # Default: 5
     min-complexity: 7
+  sloglint:
+    # Enforce not mixing key-value pairs and attributes.
+    no-mixed-args: true
+    # Enforce using key-value pairs only (overrides no-mixed-args, incompatible with attr-only).
+    kv-only: false
+    # Enforce using attributes only (overrides no-mixed-args, incompatible with kv-only).
+    attr-only: true
+    # Enforce using methods that accept a context.
+    context-only: false
+    # Enforce using static values for log messages.
+    static-msg: true
+    # Enforce using constants instead of raw keys.
+    no-raw-keys: false
+    # Enforce a single key naming convention.
+    # Values: snake, kebab, camel, pascal
+    key-naming-case: snake
+    # Enforce putting arguments on separate lines.
+    args-on-sep-lines: true
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source

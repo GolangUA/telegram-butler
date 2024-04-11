@@ -5,15 +5,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/viper"
 
 	"github.com/GolangUA/telegram-butler/internal/module/gcp/cloudrun"
 	"github.com/GolangUA/telegram-butler/internal/module/gcp/secrets"
-	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-func preSetup(ctx context.Context, _ logger.Logger) error {
+func preSetup(ctx context.Context, log *slog.Logger) error {
+	log.Info("Initializing application on GCP")
+
 	secretManager, err := secrets.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize secret manager client: %w", err)
@@ -31,6 +33,8 @@ func preSetup(ctx context.Context, _ logger.Logger) error {
 	if err != nil {
 		return fmt.Errorf("get cloud run URL: %w", err)
 	}
+
+	log.Info("Finished setting up", slog.String("url", cloudRunURL))
 
 	viper.Set("webhook-url", cloudRunURL+"/webhook")
 
