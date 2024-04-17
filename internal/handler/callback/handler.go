@@ -45,7 +45,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 	var msg string
 	switch data.Decision {
 	case callbackdata.AgreeDecision:
-		err := bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
+		err = bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
 			UserID: query.From.ID,
 			ChatID: tu.ID(data.GroupID),
 		})
@@ -55,7 +55,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 
 		msg = fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	case callbackdata.DeclineDecision:
-		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
+		err = bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
 			UserID: query.From.ID,
 			ChatID: tu.ID(data.GroupID),
 		})
