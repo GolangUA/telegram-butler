@@ -9,6 +9,7 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 
 	"github.com/GolangUA/telegram-butler/internal/handler/callback/callbackdata"
+	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
@@ -47,7 +48,16 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		),
 	)
 
-	msg := tu.Message(tu.ID(request.From.ID), termsOfUse).WithReplyMarkup(k).WithProtectContent()
+	_, err := bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    tu.ID(request.From.ID),
+		ParseMode: telego.ModeHTML,
+		Text:      messages.JoinHeader + messages.Rules,
+	})
+	if err != nil {
+		log.Error("Sending TermsOfUse and Rules message failed", slog.Any("error", err))
+	}
+
+	msg := tu.Message(tu.ID(request.From.ID), messages.JoinFooter).WithReplyMarkup(k).WithProtectContent()
 	if _, err := bot.SendMessage(msg); err != nil {
 		log.Error("Sending terms of use failed", slog.Any("error", err))
 	}

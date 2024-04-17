@@ -2,6 +2,7 @@ package callback
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/mymmrac/telego"
@@ -10,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/GolangUA/telegram-butler/internal/handler/callback/callbackdata"
+	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
@@ -40,6 +42,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 		return
 	}
 
+	var msg string
 	switch data.Decision {
 	case callbackdata.AgreeDecision:
 		err := bot.ApproveChatJoinRequest(&telego.ApproveChatJoinRequestParams{
@@ -50,16 +53,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Error("Join request approve error", slog.Any("error", err))
 		}
 
-		msg := getWelcomeMessage(query.From.FirstName, viper.GetString("group-name"))
-		_, err = bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(query.From.ID),
-			ParseMode: telego.ModeHTML,
-			Text:      msg,
-		})
-		if err != nil {
-			log.Error("Sending welcome message failed", slog.Any("error", err))
-		}
-
+		msg = fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	case callbackdata.DeclineDecision:
 		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
 			UserID: query.From.ID,
@@ -70,10 +64,14 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			return
 		}
 
-		msg := getBanMessage(viper.GetString("admin-username"))
-		_, err = bot.SendMessage(tu.Message(tu.ID(query.From.ID), msg))
-		if err != nil {
-			log.Error("Sending ban message failed", slog.Any("error", err))
-		}
+		msg = fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
+	}
+
+	_, err = bot.SendMessage(&telego.SendMessageParams{
+		ChatID: tu.ID(query.From.ID),
+		Text:   msg,
+	})
+	if err != nil {
+		log.Error("Sending decision message failed", slog.Any("error", err))
 	}
 }
