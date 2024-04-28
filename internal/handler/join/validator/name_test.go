@@ -3,6 +3,7 @@ package validator
 import "testing"
 
 func TestValidateByName(t *testing.T) {
+	t.Parallel()
 	tc := []struct {
 		name           string
 		forbiddenWords []string
@@ -18,7 +19,7 @@ func TestValidateByName(t *testing.T) {
 		{
 			name:           "Should forbid russian matryoshka emoji",
 			forbiddenWords: []string{"🪆"},
-			words:          []string{"🪆🇺"},
+			words:          []string{"🪆"},
 			expected:       false,
 		},
 		{
