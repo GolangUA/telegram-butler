@@ -68,8 +68,9 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 	}
 
 	_, err = bot.SendMessage(&telego.SendMessageParams{
-		ChatID: tu.ID(query.From.ID),
-		Text:   msg,
+		ChatID:      tu.ID(query.From.ID),
+		Text:        msg,
+		ReplyMarkup: tu.ReplyKeyboardRemove(),
 	})
 	if err != nil {
 		log.Error("Sending decision message failed", slog.Any("error", err))
