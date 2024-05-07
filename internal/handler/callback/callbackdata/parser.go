@@ -13,7 +13,7 @@ type Payload struct {
 
 func Parse(data string) (*Payload, error) {
 	splits := strings.Split(data, "_")
-	if len(splits) != 2 {
+	if len(splits) != 2 { //nolint:gomnd,mnd
 		return nil, fmt.Errorf("invalid callback query data token: %v", splits)
 	}
 

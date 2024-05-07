@@ -30,7 +30,7 @@ func (c Client) GetSecretValue(ctx context.Context, name string) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("secret access request: %w", err)
 	}
-	if resp.HTTPStatusCode != 200 {
+	if resp.HTTPStatusCode != 200 { //nolint:gomnd,mnd
 		return "", fmt.Errorf("secret access request: code=%d, data=%v", resp.HTTPStatusCode, resp.Payload.Data)
 	}
 

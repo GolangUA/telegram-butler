@@ -24,7 +24,7 @@ linters:
     - gochecknoinits # Checks that no init functions are present in Go code.
     - godot # Check if comments end in a period
     - godox # Tool for detection of FIXME, TODO and other comment keywords
-    - goerr113 # Golang linter to check the errors handling expressions
+    - err113 # Golang linter to check the errors handling expressions
     - gomnd # An analyzer to detect magic numbers
     - ireturn # Accept Interfaces, Return Concrete Types
     - interfacebloat # A linter that checks the number of methods inside an interface
