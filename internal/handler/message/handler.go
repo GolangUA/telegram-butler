@@ -32,9 +32,10 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 	))
 
 	_, err := bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    message.Chat.ChatID(),
-		ParseMode: telego.ModeHTML,
-		Text:      messages.Rules,
+		ChatID:          message.Chat.ChatID(),
+		MessageThreadID: message.MessageThreadID,
+		ParseMode:       telego.ModeHTML,
+		Text:            messages.Rules,
 	})
 	if err != nil {
 		log.Error("Sending rules message failed", slog.Any("error", err))
@@ -50,9 +51,10 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 	))
 
 	_, err := bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    message.Chat.ChatID(),
-		ParseMode: telego.ModeHTML,
-		Text:      messages.Resources,
+		ChatID:          message.Chat.ChatID(),
+		MessageThreadID: message.MessageThreadID,
+		ParseMode:       telego.ModeHTML,
+		Text:            messages.Resources,
 	})
 	if err != nil {
 		log.Error("Sending useful info message failed", slog.Any("error", err))
@@ -68,9 +70,10 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 	))
 
 	_, err := bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    message.Chat.ChatID(),
-		ParseMode: telego.ModeHTML,
-		Text:      fmt.Sprintf(messages.Help, message.From.FirstName, viper.GetString("admin-username")),
+		ChatID:          message.Chat.ChatID(),
+		MessageThreadID: message.MessageThreadID,
+		ParseMode:       telego.ModeHTML,
+		Text:            fmt.Sprintf(messages.Help, message.From.FirstName, viper.GetString("admin-username")),
 	})
 	if err != nil {
 		log.Error("Sending help message failed", slog.Any("error", err))
