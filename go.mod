@@ -3,7 +3,7 @@ module github.com/GolangUA/telegram-butler
 go 1.22
 
 require (
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mymmrac/telego v0.29.2
 	github.com/spf13/viper v1.18.2
