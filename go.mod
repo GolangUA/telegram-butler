@@ -8,7 +8,7 @@ require (
 	github.com/mymmrac/telego v0.29.2
 	github.com/spf13/viper v1.18.2
 	golang.ngrok.com/ngrok v1.9.1
-	golang.org/x/oauth2 v0.19.0
+	golang.org/x/oauth2 v0.20.0
 	google.golang.org/api v0.176.1
 )
 
