@@ -7,7 +7,7 @@ func init() {
 	viper.SetDefault("port", "8080")
 	viper.SetDefault("admin-username", "vpakh")
 	viper.SetDefault("group-name", "golang_ua_official")
-	viper.SetDefault("bot-name", "GolangUA Butler Local")
+	viper.SetDefault("bot-name", "GolangUA Bot")
 	viper.SetDefault("bot-description", "Бот для адміністрування української спільноти Go.")
 
 	viper.MustBindEnv("port", "PORT")
