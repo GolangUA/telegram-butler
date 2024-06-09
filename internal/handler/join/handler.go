@@ -70,19 +70,6 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		return
 	}
 
-	k := tu.InlineKeyboard(
-		tu.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         AgreeText,
-				CallbackData: callbackdata.NewAgreeWithGroupID(request.Chat.ID),
-			},
-			telego.InlineKeyboardButton{
-				Text:         DontAgreeText,
-				CallbackData: callbackdata.NewDeclineWithGroupID(request.Chat.ID),
-			},
-		),
-	)
-
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    tu.ID(request.From.ID),
 		ParseMode: telego.ModeHTML,
@@ -92,8 +79,31 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		log.Error("Sending TermsOfUse and Rules message failed", slog.Any("error", err))
 	}
 
-	msg := tu.Message(tu.ID(request.From.ID), messages.JoinFooter).WithReplyMarkup(k).WithProtectContent()
-	if _, err := bot.SendMessage(msg); err != nil {
+	msg := tu.Message(tu.ID(request.From.ID), messages.JoinFooter)
+	toEdit, err := bot.SendMessage(msg)
+	if err != nil {
 		log.Error("Sending terms of use failed", slog.Any("error", err))
+	}
+
+	k := tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         AgreeText,
+				CallbackData: callbackdata.NewAgreeWithGroupID(request.Chat.ID, toEdit.MessageID),
+			},
+			telego.InlineKeyboardButton{
+				Text:         DontAgreeText,
+				CallbackData: callbackdata.NewDeclineWithGroupID(request.Chat.ID, toEdit.MessageID),
+			},
+		),
+	)
+
+	_, err = bot.EditMessageReplyMarkup(&telego.EditMessageReplyMarkupParams{
+		ReplyMarkup: k,
+		ChatID:      tu.ID(request.From.ID),
+		MessageID:   toEdit.MessageID,
+	})
+	if err != nil {
+		log.Error("Editing callback query failed", slog.Any("error", err))
 	}
 }

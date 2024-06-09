@@ -7,10 +7,10 @@ const (
 	DeclineDecision = "decline"
 )
 
-func NewAgreeWithGroupID(groupdID int64) string {
-	return fmt.Sprintf("%s_%v", AgreeDecision, groupdID)
+func NewAgreeWithGroupID(groupdID int64, msgID int) string {
+	return fmt.Sprintf("%s_%d_%d", AgreeDecision, groupdID, msgID)
 }
 
-func NewDeclineWithGroupID(groupdID int64) string {
-	return fmt.Sprintf("%s_%v", DeclineDecision, groupdID)
+func NewDeclineWithGroupID(groupdID int64, msgID int) string {
+	return fmt.Sprintf("%s_%d_%d", DeclineDecision, groupdID, msgID)
 }
