@@ -53,6 +53,7 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 			log.Error("Join request approve error", slog.Any("error", err))
 		}
 
+		log.Info("Successfully approved join request")
 		msg = fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	case callbackdata.DeclineDecision:
 		err = bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
