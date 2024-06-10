@@ -3,6 +3,7 @@ package secrets
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"google.golang.org/api/secretmanager/v1"
@@ -13,6 +14,8 @@ const BotTokenSecretID = "BOT_TOKEN"
 type Client struct {
 	*secretmanager.Service
 }
+
+var ErrSecretAccessRequest = errors.New("secret access request failed")
 
 func NewClient(ctx context.Context) (*Client, error) {
 	client, err := secretmanager.NewService(ctx)
@@ -31,7 +34,7 @@ func (c Client) GetSecretValue(ctx context.Context, name string) (string, error)
 		return "", fmt.Errorf("secret access request: %w", err)
 	}
 	if resp.HTTPStatusCode != 200 { //nolint:gomnd,mnd
-		return "", fmt.Errorf("secret access request: code=%d, data=%v", resp.HTTPStatusCode, resp.Payload.Data)
+		return "", fmt.Errorf("%w: code=%d, data=%v", ErrSecretAccessRequest, resp.HTTPStatusCode, resp.Payload.Data)
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(resp.Payload.Data)

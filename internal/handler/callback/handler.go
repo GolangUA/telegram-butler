@@ -68,10 +68,10 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 		msg = fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
 	}
 
-	_, err = bot.SendMessage(&telego.SendMessageParams{
-		ChatID:      tu.ID(query.From.ID),
-		Text:        msg,
-		ReplyMarkup: tu.ReplyKeyboardRemove(),
+	_, err = bot.EditMessageText(&telego.EditMessageTextParams{
+		MessageID: data.MessageID,
+		ChatID:    tu.ID(query.From.ID),
+		Text:      msg,
 	})
 	if err != nil {
 		log.Error("Sending decision message failed", slog.Any("error", err))
