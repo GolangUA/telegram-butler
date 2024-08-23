@@ -20,12 +20,7 @@ func main() {
 		viper.GetString("log-format"),
 		viper.GetBool("log-source"),
 	)
-	log.Info("Starting Bot...")
-	log.Info("Starting Bot...")
-	log.Error("Starting Bot...")
-	log.Debug("Starting Bot...")
-	log.Warn("Starting Bot...")
-	os.Exit(1)
+
 	ctx = logger.ToContext(ctx, log)
 
 	sigs := make(chan os.Signal, 1)
