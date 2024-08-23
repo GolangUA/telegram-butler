@@ -10,10 +10,6 @@ import (
 	"github.com/fatih/color"
 )
 
-type PrettyHandlerOptions struct {
-	SlogOpts slog.HandlerOptions
-}
-
 type PrettyHandler struct {
 	slog.Handler
 	l *log.Logger
@@ -36,7 +32,6 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	fields := make(map[string]any, r.NumAttrs())
 	r.Attrs(func(a slog.Attr) bool {
 		fields[a.Key] = a.Value.Any()
-
 		return true
 	})
 
@@ -53,9 +48,9 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-func NewPrettyHandler(out io.Writer, opts PrettyHandlerOptions) *PrettyHandler {
+func NewPrettyHandler(out io.Writer, opts *slog.HandlerOptions) *PrettyHandler {
 	h := &PrettyHandler{
-		Handler: slog.NewJSONHandler(out, &opts.SlogOpts),
+		Handler: slog.NewJSONHandler(out, opts),
 		l:       log.New(out, "local-dev ", 0),
 	}
 
