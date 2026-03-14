@@ -46,6 +46,12 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 
 	log.Info("[JOIN REQUEST]")
 
+	log.Log(ctx, logger.LevelTrace, "validating join request",
+		slog.String("first_name", request.From.FirstName),
+		slog.String("last_name", request.From.LastName),
+		slog.Int64("chat_id", request.Chat.ID),
+	)
+
 	if !h.validator.Validate(request.From.FirstName, request.From.LastName, request.From.Username) {
 		log.Info("Name validation is failed")
 		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{

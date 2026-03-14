@@ -32,6 +32,10 @@ func (h *handler) callbackQuery(ctx context.Context, bot *telego.Bot, query tele
 
 	log.Info("[CALLBACK QUERY]")
 
+	log.Log(ctx, logger.LevelTrace, "processing callback",
+		slog.String("data", query.Data),
+	)
+
 	if err := bot.AnswerCallbackQuery(tu.CallbackQuery(query.ID)); err != nil {
 		log.Error("Sending answer to callback query failed", slog.Any("error", err))
 	}

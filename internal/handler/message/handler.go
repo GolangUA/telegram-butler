@@ -31,6 +31,11 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 		slog.Int64("id", message.From.ID),
 	))
 
+	log.Log(ctx, logger.LevelTrace, "handling /rules command",
+		slog.Int64("chat_id", message.Chat.ID),
+		slog.Int("thread_id", message.MessageThreadID),
+	)
+
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
@@ -50,6 +55,11 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 		slog.Int64("id", message.From.ID),
 	))
 
+	log.Log(ctx, logger.LevelTrace, "handling /useful command",
+		slog.Int64("chat_id", message.Chat.ID),
+		slog.Int("thread_id", message.MessageThreadID),
+	)
+
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
@@ -68,6 +78,11 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 		slog.String("username", message.From.Username),
 		slog.Int64("id", message.From.ID),
 	))
+
+	log.Log(ctx, logger.LevelTrace, "handling /help command",
+		slog.Int64("chat_id", message.Chat.ID),
+		slog.Int("thread_id", message.MessageThreadID),
+	)
 
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
