@@ -3,6 +3,7 @@ package callback
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -12,6 +13,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/callback/callbackdata"
 	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
+	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
 func Register(bh *th.BotHandler) {
@@ -59,6 +61,17 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 		}
 
 		log.Info("Successfully approved join request")
+
+		// 24h read-only for new members
+		restrictErr := ctx.Bot().RestrictChatMember(ctx, &telego.RestrictChatMemberParams{
+			ChatID:      tu.ID(data.GroupID),
+			UserID:      query.From.ID,
+			UntilDate:   time.Now().Add(24 * time.Hour).Unix(),
+			Permissions: telegram.DenyAllPermissions(),
+		})
+		if restrictErr != nil {
+			log.Error("Failed to restrict new member", slog.Any("error", restrictErr))
+		}
 
 		msg = fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	case callbackdata.DeclineDecision:
