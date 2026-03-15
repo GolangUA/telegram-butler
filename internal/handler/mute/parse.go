@@ -13,6 +13,9 @@ import (
 
 var durationRegex = regexp.MustCompile(`^(\d+)(m|min|minute|h|d|w|mo|month)$`)
 
+// expectedDurationMatches is the number of submatches: full match + number + unit.
+const expectedDurationMatches = 3
+
 type command struct {
 	Duration time.Duration
 	Reason   string
@@ -43,7 +46,7 @@ func parseCommand(text string) (*command, error) {
 
 func parseDuration(s string) (time.Duration, error) {
 	matches := durationRegex.FindStringSubmatch(s)
-	if matches == nil {
+	if len(matches) != expectedDurationMatches {
 		return 0, fmt.Errorf("invalid duration %q, expected: <number><m|h|d|w|mo> (e.g. 30m, 1h, 2d, 1w, 1mo)", s)
 	}
 
