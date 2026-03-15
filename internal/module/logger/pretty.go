@@ -94,7 +94,15 @@ func resolveAttr(fields map[string]any, a slog.Attr) {
 		return
 	}
 
-	fields[a.Key] = a.Value.Any()
+	val := a.Value.Any()
+
+	// Handle error interface — serialize as string, not struct
+	if err, ok := val.(error); ok {
+		fields[a.Key] = err.Error()
+		return
+	}
+
+	fields[a.Key] = val
 }
 
 func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {

@@ -14,6 +14,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/join"
 	"github.com/GolangUA/telegram-butler/internal/handler/message"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
+	"github.com/GolangUA/telegram-butler/internal/handler/mute"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
@@ -60,6 +61,7 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	message.Register(bh)
 	join.Register(bh)
 	callback.Register(bh)
+	mute.Register(bh)
 
 	log.Debug("Bot handlers are registered")
 
