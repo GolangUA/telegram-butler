@@ -1,6 +1,6 @@
 module github.com/GolangUA/telegram-butler
 
-go 1.22
+go 1.26
 
 require (
 	github.com/fatih/color v1.17.0
