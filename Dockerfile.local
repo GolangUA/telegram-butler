@@ -15,7 +15,7 @@ COPY ./internal/ ./internal/
 
 RUN go build -tags local -o main ./cmd/telegram-butler
 
-FROM alpine:3.21
+FROM alpine:3.23
 
 # CA certs needed for HTTPS (ngrok, Telegram API)
 RUN apk add --no-cache ca-certificates

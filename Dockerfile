@@ -12,7 +12,7 @@ COPY ./internal/ ./internal/
 RUN go build -o main ./cmd/telegram-butler
 
 # Switch to a smaller image for the final container
-FROM alpine:3.21
+FROM alpine:3.23
 
 COPY --from=builder /go/src/app/main .
 
