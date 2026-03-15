@@ -9,7 +9,8 @@ import (
 )
 
 func syncInfo(ctx context.Context, b *telego.Bot) error {
-	if err := syncName(ctx, b); err != nil {
+	err := syncName(ctx, b)
+	if err != nil {
 		return err
 	}
 

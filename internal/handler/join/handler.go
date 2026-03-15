@@ -24,6 +24,7 @@ func Register(bh *th.BotHandler) {
 	h := &handler{
 		validator: validator.New(validator.DefaultForbiddenList),
 	}
+
 	bh.HandleChatJoinRequest(h.chatJoinRequest)
 }
 
@@ -53,6 +54,7 @@ func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinReques
 
 	if !h.validator.Validate(request.From.FirstName, request.From.LastName, request.From.Username) {
 		log.Info("Name validation is failed")
+
 		err := ctx.Bot().DeclineChatJoinRequest(ctx, &telego.DeclineChatJoinRequestParams{
 			UserID: request.From.ID,
 			ChatID: tu.ID(request.Chat.ID),
@@ -63,6 +65,7 @@ func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinReques
 		}
 
 		msg := fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
+
 		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 			ChatID:      tu.ID(request.From.ID),
 			Text:        msg,
@@ -85,6 +88,7 @@ func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinReques
 	}
 
 	msg := tu.Message(tu.ID(request.From.ID), messages.JoinFooter)
+
 	toEdit, err := ctx.Bot().SendMessage(ctx, msg)
 	if err != nil {
 		log.Error("Sending terms of use failed", slog.Any("error", err))

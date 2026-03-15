@@ -17,7 +17,8 @@ func Bot(ctx context.Context, cfg BotConfig) (*telego.Bot, error) {
 		return nil, fmt.Errorf("create bot: %w", err)
 	}
 
-	if err := syncInfo(ctx, bot); err != nil {
+	err = syncInfo(ctx, bot)
+	if err != nil {
 		return nil, fmt.Errorf("sync info failed: %w", err)
 	}
 

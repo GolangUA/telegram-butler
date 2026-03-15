@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"maps"
 
 	"github.com/fatih/color"
 )
@@ -16,11 +17,19 @@ type PrettyHandler struct {
 	attrs []slog.Attr
 }
 
+func NewPrettyHandler(out io.Writer, opts *slog.HandlerOptions) *PrettyHandler {
+	return &PrettyHandler{
+		opts: *opts,
+		l:    log.New(out, "local-dev ", 0),
+	}
+}
+
 func (h *PrettyHandler) Enabled(_ context.Context, level slog.Level) bool {
 	minLevel := slog.LevelInfo
 	if h.opts.Level != nil {
 		minLevel = h.opts.Level.Level()
 	}
+
 	return level >= minLevel
 }
 
@@ -70,17 +79,18 @@ func resolveAttr(fields map[string]any, a slog.Attr) {
 
 	if a.Value.Kind() == slog.KindGroup {
 		group := make(map[string]any)
+
 		for _, ga := range a.Value.Group() {
 			resolveAttr(group, ga)
 		}
+
 		if a.Key == "" {
 			// Inline group (no key) — merge into parent
-			for k, v := range group {
-				fields[k] = v
-			}
+			maps.Copy(fields, group)
 		} else {
 			fields[a.Key] = group
 		}
+
 		return
 	}
 
@@ -91,6 +101,7 @@ func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	newAttrs := make([]slog.Attr, len(h.attrs), len(h.attrs)+len(attrs))
 	copy(newAttrs, h.attrs)
 	newAttrs = append(newAttrs, attrs...)
+
 	return &PrettyHandler{
 		opts:  h.opts,
 		l:     h.l,
@@ -98,13 +109,6 @@ func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
-func (h *PrettyHandler) WithGroup(name string) slog.Handler {
+func (h *PrettyHandler) WithGroup(_ string) slog.Handler {
 	return h
-}
-
-func NewPrettyHandler(out io.Writer, opts *slog.HandlerOptions) *PrettyHandler {
-	return &PrettyHandler{
-		opts: *opts,
-		l:    log.New(out, "local-dev ", 0),
-	}
 }

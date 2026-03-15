@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"google.golang.org/api/secretmanager/v1"
 )
@@ -33,7 +34,8 @@ func (c Client) GetSecretValue(ctx context.Context, name string) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("secret access request: %w", err)
 	}
-	if resp.HTTPStatusCode != 200 { //nolint:gomnd,mnd
+
+	if resp.HTTPStatusCode != http.StatusOK {
 		return "", fmt.Errorf("%w: code=%d, data=%v", ErrSecretAccessRequest, resp.HTTPStatusCode, resp.Payload.Data)
 	}
 

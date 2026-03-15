@@ -25,5 +25,6 @@ func (v *ByName) Validate(names ...string) bool {
 			}
 		}
 	}
+
 	return true
 }

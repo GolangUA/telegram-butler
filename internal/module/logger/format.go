@@ -22,12 +22,14 @@ func SetupLogger(logLevel string, logFormat string, addSource bool) *slog.Logger
 	opts := &slog.HandlerOptions{
 		AddSource: addSource,
 		Level:     level,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+		ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.LevelKey {
-				if a.Value.Any().(slog.Level) == LevelTrace {
+				level, ok := a.Value.Any().(slog.Level)
+				if ok && level == LevelTrace {
 					a.Value = slog.StringValue("TRACE")
 				}
 			}
+
 			return a
 		},
 	}

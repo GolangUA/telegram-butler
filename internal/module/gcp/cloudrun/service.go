@@ -34,6 +34,7 @@ func GetServiceURL(ctx context.Context) (string, error) {
 		viper.GetString("project-id"),
 		viper.GetString("k-service"),
 	)
+
 	resp, err := client.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("call cloud run API %s with error: %w", url, err)
@@ -46,7 +47,9 @@ func GetServiceURL(ctx context.Context) (string, error) {
 	}
 
 	var si serviceInfo
-	if err := json.Unmarshal(body, &si); err != nil {
+
+	err = json.Unmarshal(body, &si)
+	if err != nil {
 		return "", fmt.Errorf("unmarshal cloud run API call body: %w", err)
 	}
 

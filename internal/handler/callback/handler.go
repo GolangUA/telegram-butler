@@ -35,7 +35,8 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 		slog.String("data", query.Data),
 	)
 
-	if err := ctx.Bot().AnswerCallbackQuery(ctx, tu.CallbackQuery(query.ID)); err != nil {
+	err := ctx.Bot().AnswerCallbackQuery(ctx, tu.CallbackQuery(query.ID))
+	if err != nil {
 		log.Error("Sending answer to callback query failed", slog.Any("error", err))
 	}
 
@@ -46,6 +47,7 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 	}
 
 	var msg string
+
 	switch data.Decision {
 	case callbackdata.AgreeDecision:
 		err = ctx.Bot().ApproveChatJoinRequest(ctx, &telego.ApproveChatJoinRequestParams{
@@ -57,6 +59,7 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 		}
 
 		log.Info("Successfully approved join request")
+
 		msg = fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	case callbackdata.DeclineDecision:
 		err = ctx.Bot().DeclineChatJoinRequest(ctx, &telego.DeclineChatJoinRequestParams{
@@ -69,6 +72,9 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 		}
 
 		msg = fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
+	default:
+		log.Error("Unknown decision", slog.String("decision", data.Decision))
+		return nil
 	}
 
 	_, err = ctx.Bot().EditMessageText(ctx, &telego.EditMessageTextParams{

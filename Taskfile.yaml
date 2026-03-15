@@ -112,7 +112,7 @@ tasks:
   install:lint:
     desc: "Install golangci-lint"
     cmds:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.3
     status:
       - command -v golangci-lint
 
