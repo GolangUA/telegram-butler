@@ -1,7 +1,6 @@
 package join
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 
@@ -25,7 +24,8 @@ func Register(bh *th.BotHandler) {
 	h := &handler{
 		validator: validator.New(validator.DefaultForbiddenList),
 	}
-	bh.HandleChatJoinRequestCtx(h.chatJoinRequest)
+
+	bh.HandleChatJoinRequest(h.chatJoinRequest)
 }
 
 type nameValidator interface {
@@ -36,7 +36,7 @@ type handler struct {
 	validator nameValidator
 }
 
-func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request telego.ChatJoinRequest) {
+func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinRequest) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -46,19 +46,27 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 
 	log.Info("[JOIN REQUEST]")
 
+	log.Log(ctx, logger.LevelTrace, "validating join request",
+		slog.String("first_name", request.From.FirstName),
+		slog.String("last_name", request.From.LastName),
+		slog.Int64("chat_id", request.Chat.ID),
+	)
+
 	if !h.validator.Validate(request.From.FirstName, request.From.LastName, request.From.Username) {
 		log.Info("Name validation is failed")
-		err := bot.DeclineChatJoinRequest(&telego.DeclineChatJoinRequestParams{
+
+		err := ctx.Bot().DeclineChatJoinRequest(ctx, &telego.DeclineChatJoinRequestParams{
 			UserID: request.From.ID,
 			ChatID: tu.ID(request.Chat.ID),
 		})
 		if err != nil {
 			log.Error("Decline join request failed", slog.Any("error", err))
-			return
+			return nil
 		}
 
 		msg := fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
-		_, err = bot.SendMessage(&telego.SendMessageParams{
+
+		_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 			ChatID:      tu.ID(request.From.ID),
 			Text:        msg,
 			ReplyMarkup: tu.ReplyKeyboardRemove(),
@@ -67,10 +75,10 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 			log.Error("Sending decision message failed", slog.Any("error", err))
 		}
 
-		return
+		return nil
 	}
 
-	_, err := bot.SendMessage(&telego.SendMessageParams{
+	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:    tu.ID(request.From.ID),
 		ParseMode: telego.ModeHTML,
 		Text:      messages.JoinHeader + messages.Rules,
@@ -80,7 +88,8 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 	}
 
 	msg := tu.Message(tu.ID(request.From.ID), messages.JoinFooter)
-	toEdit, err := bot.SendMessage(msg)
+
+	toEdit, err := ctx.Bot().SendMessage(ctx, msg)
 	if err != nil {
 		log.Error("Sending terms of use failed", slog.Any("error", err))
 	}
@@ -98,7 +107,7 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 		),
 	)
 
-	_, err = bot.EditMessageReplyMarkup(&telego.EditMessageReplyMarkupParams{
+	_, err = ctx.Bot().EditMessageReplyMarkup(ctx, &telego.EditMessageReplyMarkupParams{
 		ReplyMarkup: k,
 		ChatID:      tu.ID(request.From.ID),
 		MessageID:   toEdit.MessageID,
@@ -106,4 +115,6 @@ func (h *handler) chatJoinRequest(ctx context.Context, bot *telego.Bot, request 
 	if err != nil {
 		log.Error("Editing callback query failed", slog.Any("error", err))
 	}
+
+	return nil
 }

@@ -21,6 +21,12 @@ tasks:
     cmds:
       - go run -tags local ./cmd/telegram-butler/
 
+  run:docker:
+    desc: "Run service locally in Docker"
+    cmds:
+      - docker build -f Dockerfile.local -t telegram-butler:local .
+      - docker run --rm --env-file .env -p 8080:8080 telegram-butler:local
+
   format:
     desc: "Run formatters"
     deps: [ install:gofumpt, install:gci ]
@@ -106,7 +112,7 @@ tasks:
   install:lint:
     desc: "Install golangci-lint"
     cmds:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.3
     status:
       - command -v golangci-lint
 

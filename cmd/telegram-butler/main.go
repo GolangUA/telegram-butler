@@ -27,6 +27,7 @@ func main() {
 	signal.Notify(sigs, os.Interrupt)
 
 	log.Info("Starting Bot...")
+
 	err := preSetup(ctx, log)
 	if err != nil {
 		log.Error("Pre-setup", slog.Any("error", err))
@@ -40,21 +41,29 @@ func main() {
 	}
 
 	log.Debug("Starting handling queries")
+
 	go func() {
-		if runErr := run(); runErr != nil {
+		runErr := run()
+		if runErr != nil {
 			log.Error("Run", slog.Any("error", runErr))
 		}
+
 		sigs <- os.Interrupt
 	}()
 
 	done := make(chan struct{}, 1)
+
 	go func() {
 		<-sigs
 		log.Info("Stopping Bot handler...")
-		if stopErr := stop(); stopErr != nil {
+
+		stopErr := stop()
+		if stopErr != nil {
 			log.Error("Stop", slog.Any("error", stopErr))
 		}
+
 		cancel()
+
 		done <- struct{}{}
 	}()
 

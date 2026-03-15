@@ -32,9 +32,9 @@ jobs:
         run: diff -u <(echo -n) <(gofmt -d .)
 
       - name: Golangci Lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.11.3
 
   test:
     name: Tests

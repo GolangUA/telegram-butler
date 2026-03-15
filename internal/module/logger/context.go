@@ -18,5 +18,6 @@ func FromContext(ctx context.Context) *slog.Logger {
 	if !ok || log == nil {
 		panic("no logger")
 	}
+
 	return log
 }

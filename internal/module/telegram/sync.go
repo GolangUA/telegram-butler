@@ -1,22 +1,24 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mymmrac/telego"
 	"github.com/spf13/viper"
 )
 
-func syncInfo(b *telego.Bot) error {
-	if err := syncName(b); err != nil {
+func syncInfo(ctx context.Context, b *telego.Bot) error {
+	err := syncName(ctx, b)
+	if err != nil {
 		return err
 	}
 
-	return syncDescription(b)
+	return syncDescription(ctx, b)
 }
 
-func syncName(b *telego.Bot) error {
-	my, err := b.GetMyName(&telego.GetMyNameParams{})
+func syncName(ctx context.Context, b *telego.Bot) error {
+	my, err := b.GetMyName(ctx, &telego.GetMyNameParams{})
 	if err != nil {
 		return err
 	}
@@ -26,7 +28,7 @@ func syncName(b *telego.Bot) error {
 		return nil
 	}
 
-	err = b.SetMyName(&telego.SetMyNameParams{
+	err = b.SetMyName(ctx, &telego.SetMyNameParams{
 		Name: actualName,
 	})
 	if err != nil {
@@ -36,8 +38,8 @@ func syncName(b *telego.Bot) error {
 	return nil
 }
 
-func syncDescription(b *telego.Bot) error {
-	my, err := b.GetMyDescription(&telego.GetMyDescriptionParams{})
+func syncDescription(ctx context.Context, b *telego.Bot) error {
+	my, err := b.GetMyDescription(ctx, &telego.GetMyDescriptionParams{})
 	if err != nil {
 		return err
 	}
@@ -47,7 +49,7 @@ func syncDescription(b *telego.Bot) error {
 		return nil
 	}
 
-	err = b.SetMyDescription(&telego.SetMyDescriptionParams{
+	err = b.SetMyDescription(ctx, &telego.SetMyDescriptionParams{
 		Description: actualDescription,
 	})
 	if err != nil {

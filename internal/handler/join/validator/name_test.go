@@ -4,6 +4,7 @@ import "testing"
 
 func TestValidateByName(t *testing.T) {
 	t.Parallel()
+
 	tc := []struct {
 		name           string
 		forbiddenWords []string
@@ -75,6 +76,7 @@ func TestValidateByName(t *testing.T) {
 	for _, tt := range tc {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			v := New(tt.forbiddenWords)
 			if got := v.Validate(tt.words...); got != tt.expected {
 				t.Errorf("Expected to get: %v, but got: %v", tt.expected, got)

@@ -21,7 +21,10 @@ func preSetup(ctx context.Context, log *slog.Logger) error {
 		return fmt.Errorf("initialize secret manager client: %w", err)
 	}
 
-	botTokenSecretName := secrets.BuildSecretName(viper.GetString("project-id"), secrets.BotTokenSecretID, "latest")
+	botTokenSecretName := secrets.BuildSecretName(
+		viper.GetString("project-id"), secrets.BotTokenSecretID, "latest",
+	)
+
 	botToken, err := secretManager.GetSecretValue(ctx, botTokenSecretName)
 	if err != nil {
 		return fmt.Errorf("get bot token: %w", err)

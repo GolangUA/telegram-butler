@@ -1,22 +1,24 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mymmrac/telego"
 )
 
-func Bot(cfg BotConfig) (*telego.Bot, error) {
+func Bot(ctx context.Context, cfg BotConfig) (*telego.Bot, error) {
 	bot, err := telego.NewBot(
 		cfg.BotToken,
 		telego.WithDiscardLogger(),
-		telego.WithHealthCheck(),
+		telego.WithHealthCheck(ctx),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create bot: %w", err)
 	}
 
-	if err := syncInfo(bot); err != nil {
+	err = syncInfo(ctx, bot)
+	if err != nil {
 		return nil, fmt.Errorf("sync info failed: %w", err)
 	}
 
