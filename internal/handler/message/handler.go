@@ -1,7 +1,6 @@
 package message
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 
@@ -16,14 +15,14 @@ import (
 
 func Register(bh *th.BotHandler) {
 	h := &handler{}
-	bh.HandleMessageCtx(h.rules, th.CommandEqual(commands.SendRules))
-	bh.HandleMessageCtx(h.usefulInfo, th.CommandEqual(commands.SendUsefulInfo))
-	bh.HandleMessageCtx(h.help, th.CommandEqual(commands.SendHelp))
+	bh.HandleMessage(h.rules, th.CommandEqual(commands.SendRules))
+	bh.HandleMessage(h.usefulInfo, th.CommandEqual(commands.SendUsefulInfo))
+	bh.HandleMessage(h.help, th.CommandEqual(commands.SendHelp))
 }
 
 type handler struct{}
 
-func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Message) {
+func (h *handler) rules(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -36,7 +35,7 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 		slog.Int("thread_id", message.MessageThreadID),
 	)
 
-	_, err := bot.SendMessage(&telego.SendMessageParams{
+	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
@@ -45,9 +44,11 @@ func (h *handler) rules(ctx context.Context, bot *telego.Bot, message telego.Mes
 	if err != nil {
 		log.Error("Sending rules message failed", slog.Any("error", err))
 	}
+
+	return nil
 }
 
-func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message telego.Message) {
+func (h *handler) usefulInfo(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -60,7 +61,7 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 		slog.Int("thread_id", message.MessageThreadID),
 	)
 
-	_, err := bot.SendMessage(&telego.SendMessageParams{
+	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
@@ -69,9 +70,11 @@ func (h *handler) usefulInfo(ctx context.Context, bot *telego.Bot, message teleg
 	if err != nil {
 		log.Error("Sending useful info message failed", slog.Any("error", err))
 	}
+
+	return nil
 }
 
-func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Message) {
+func (h *handler) help(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -84,7 +87,7 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 		slog.Int("thread_id", message.MessageThreadID),
 	)
 
-	_, err := bot.SendMessage(&telego.SendMessageParams{
+	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
@@ -93,4 +96,6 @@ func (h *handler) help(ctx context.Context, bot *telego.Bot, message telego.Mess
 	if err != nil {
 		log.Error("Sending help message failed", slog.Any("error", err))
 	}
+
+	return nil
 }

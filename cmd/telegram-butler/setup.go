@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	"github.com/spf13/viper"
 
@@ -19,14 +20,14 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	log.Info("Setting up the Bot")
 
 	botCfg := config.Bot()
-	bot, err := telegram.Bot(botCfg)
+	bot, err := telegram.Bot(ctx, botCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("bot: %w", err)
 	}
 
 	log.Debug("Bot is set")
 
-	if err = commands.Sync(bot); err != nil {
+	if err = commands.Sync(ctx, bot); err != nil {
 		return nil, nil, fmt.Errorf("sync commands failed: %w", err)
 	}
 
@@ -39,7 +40,9 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 	log.Debug("Webhook is configured", slog.Any("webhook", webhookCfg))
 
-	updates, err := telegram.Webhook(ctx, webhookCfg, bot)
+	mux := http.NewServeMux()
+
+	updates, err := telegram.Webhook(ctx, webhookCfg, bot, mux)
 	if err != nil {
 		return nil, nil, fmt.Errorf("webhook: %w", err)
 	}
@@ -57,15 +60,20 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 	log.Debug("Bot handlers are registered")
 
+	srv := &http.Server{
+		Addr:    ":" + viper.GetString("port"),
+		Handler: mux,
+	}
+
 	run = func() error {
 		go func() {
-			if webhookErr := bot.StartWebhook(":" + viper.GetString("port")); webhookErr != nil {
+			if webhookErr := srv.ListenAndServe(); webhookErr != nil && webhookErr != http.ErrServerClosed {
 				log.Error("Starting webhook failed", slog.Any("error", webhookErr))
 			}
 		}()
 
 		bh.Start()
-		log.Debug("Handler started")
+		log.Debug("Handler stopped processing updates")
 
 		return nil
 	}
@@ -74,7 +82,7 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		bh.Stop()
 		log.Debug("Handler stopped")
 
-		if err = bot.StopWebhookWithContext(ctx); err != nil {
+		if err = srv.Shutdown(ctx); err != nil {
 			return fmt.Errorf("stop webhook: %w", err)
 		}
 
