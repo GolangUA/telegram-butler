@@ -80,7 +80,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	targetName := h.displayName(target)
+	targetName := h.mentionUser(target)
 
 	log.Info("User muted",
 		slog.String("target", targetName),
@@ -143,7 +143,7 @@ func (h *handler) notifyMute(
 	ctx *th.Context, message telego.Message, targetName string, cmd *command,
 ) error {
 	notification := fmt.Sprintf(messages.MuteNotification,
-		targetName, message.From.Username, duration.Format(cmd.Duration))
+		targetName, h.mentionUser(message.From), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
 		notification += "\nReason: " + cmd.Reason
@@ -152,7 +152,7 @@ func (h *handler) notifyMute(
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
-		ParseMode:       telego.ModeMarkdownV2,
+		ParseMode:       telego.ModeHTML,
 		Text:            notification,
 	})
 
@@ -180,7 +180,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	reply, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
-		ParseMode:       telego.ModeMarkdownV2,
+		ParseMode:       telego.ModeHTML,
 		Text:            fmt.Sprintf(messages.MuteError, message.Text, errText),
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -206,12 +206,13 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	return nil
 }
 
-// displayName returns username if available, otherwise first name.
+// mentionUser returns a MarkdownV2 inline mention link for the user.
 // Can be moved to a shared package if reused by other handlers.
-func (*handler) displayName(user *telego.User) string {
+func (*handler) mentionUser(user *telego.User) string {
+	name := user.FirstName
 	if user.Username != "" {
-		return user.Username
+		name = user.FirstName + " (@" + user.Username + ")"
 	}
 
-	return user.FirstName
+	return fmt.Sprintf("<a href=\"tg://user?id=%d\">%s</a>", user.ID, name)
 }

@@ -43,23 +43,26 @@ func Parse(s string) (time.Duration, error) {
 	}
 }
 
-// Format formats a duration into a human-readable short form like "1h", "2d", "1w", "1mo".
+// Format formats a duration into a human-readable form like "1 hour", "2 days", "1 week", "3 months".
 func Format(d time.Duration) string {
 	switch {
 	case d%(30*24*time.Hour) == 0:
-		months := int(d / (30 * 24 * time.Hour))
-		return fmt.Sprintf("%dmo", months)
+		return pluralize(int(d/(30*24*time.Hour)), "month")
 	case d%(7*24*time.Hour) == 0:
-		weeks := int(d / (7 * 24 * time.Hour))
-		return fmt.Sprintf("%dw", weeks)
+		return pluralize(int(d/(7*24*time.Hour)), "week")
 	case d%(24*time.Hour) == 0:
-		days := int(d / (24 * time.Hour))
-		return fmt.Sprintf("%dd", days)
+		return pluralize(int(d/(24*time.Hour)), "day")
 	case d%time.Hour == 0:
-		hours := int(d / time.Hour)
-		return fmt.Sprintf("%dh", hours)
+		return pluralize(int(d/time.Hour), "hour")
 	default:
-		minutes := int(d / time.Minute)
-		return fmt.Sprintf("%dm", minutes)
+		return pluralize(int(d/time.Minute), "minute")
 	}
+}
+
+func pluralize(n int, unit string) string {
+	if n == 1 {
+		return fmt.Sprintf("%d %s", n, unit)
+	}
+
+	return fmt.Sprintf("%d %ss", n, unit)
 }

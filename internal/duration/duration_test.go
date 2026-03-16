@@ -67,13 +67,18 @@ func TestFormat(t *testing.T) {
 		dur  time.Duration
 		want string
 	}{
-		"minutes":    {dur: 30 * time.Minute, want: "30m"},
-		"hours":      {dur: 2 * time.Hour, want: "2h"},
-		"days":       {dur: 3 * 24 * time.Hour, want: "3d"},
-		"weeks":      {dur: 2 * 7 * 24 * time.Hour, want: "2w"},
-		"months":     {dur: 1 * 30 * 24 * time.Hour, want: "1mo"},
-		"90 minutes": {dur: 90 * time.Minute, want: "90m"},
-		"36 hours":   {dur: 36 * time.Hour, want: "36h"},
+		"1 minute":   {dur: time.Minute, want: "1 minute"},
+		"30 minutes": {dur: 30 * time.Minute, want: "30 minutes"},
+		"1 hour":     {dur: time.Hour, want: "1 hour"},
+		"2 hours":    {dur: 2 * time.Hour, want: "2 hours"},
+		"1 day":      {dur: 24 * time.Hour, want: "1 day"},
+		"3 days":     {dur: 3 * 24 * time.Hour, want: "3 days"},
+		"1 week":     {dur: 7 * 24 * time.Hour, want: "1 week"},
+		"2 weeks":    {dur: 2 * 7 * 24 * time.Hour, want: "2 weeks"},
+		"1 month":    {dur: 30 * 24 * time.Hour, want: "1 month"},
+		"3 months":   {dur: 3 * 30 * 24 * time.Hour, want: "3 months"},
+		"90 minutes": {dur: 90 * time.Minute, want: "90 minutes"},
+		"36 hours":   {dur: 36 * time.Hour, want: "36 hours"},
 	}
 
 	for name, tt := range tests {
