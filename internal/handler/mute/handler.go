@@ -59,7 +59,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	target, err := resolveTarget(message)
+	target, err := h.resolveTarget(message)
 	if err != nil {
 		h.replyWithError(ctx, log, message, err.Error())
 		return nil
@@ -80,7 +80,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	targetName := displayName(target)
+	targetName := h.displayName(target)
 
 	log.Info("User muted",
 		slog.String("target", targetName),
@@ -163,7 +163,9 @@ func (h *handler) notifyMute(
 	return err
 }
 
-func resolveTarget(message telego.Message) (*telego.User, error) {
+// resolveTarget extracts the target user from the replied message.
+// Can be moved to a shared package if reused by other handlers.
+func (*handler) resolveTarget(message telego.Message) (*telego.User, error) {
 	if message.ReplyToMessage == nil || message.ReplyToMessage.From == nil {
 		return nil, errors.New("reply to a message to mute the user")
 	}
@@ -208,7 +210,9 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	return nil
 }
 
-func displayName(user *telego.User) string {
+// displayName returns username if available, otherwise first name.
+// Can be moved to a shared package if reused by other handlers.
+func (*handler) displayName(user *telego.User) string {
 	if user.Username != "" {
 		return user.Username
 	}
