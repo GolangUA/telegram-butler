@@ -47,7 +47,9 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		slog.Int("thread_id", message.MessageThreadID),
 	)
 
-	if !h.isAdmin(ctx, message) {
+	chatID := message.Chat.ChatID()
+
+	if !h.isAdmin(ctx, chatID, message.From.ID) {
 		return nil
 	}
 
@@ -63,13 +65,13 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	err = h.verifyNotAdmin(ctx, message, target)
+	err = h.verifyNotAdmin(ctx, chatID, target.ID)
 	if err != nil {
 		h.replyWithError(ctx, log, message, err.Error())
 		return nil
 	}
 
-	err = h.restrictUser(ctx, message, target, cmd.Duration)
+	err = h.restrictUser(ctx, chatID, target.ID, cmd.Duration)
 	if err != nil {
 		log.Error("Failed to restrict user", slog.Any("error", err))
 
@@ -95,10 +97,10 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 	return nil
 }
 
-func (h *handler) isAdmin(ctx *th.Context, message telego.Message) bool {
+func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) bool {
 	member, err := ctx.Bot().GetChatMember(ctx, &telego.GetChatMemberParams{
-		ChatID: message.Chat.ChatID(),
-		UserID: message.From.ID,
+		ChatID: chatID,
+		UserID: userID,
 	})
 	if err != nil {
 		return false
@@ -109,10 +111,10 @@ func (h *handler) isAdmin(ctx *th.Context, message telego.Message) bool {
 	return status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator
 }
 
-func (h *handler) verifyNotAdmin(ctx *th.Context, message telego.Message, target *telego.User) error {
+func (h *handler) verifyNotAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) error {
 	member, err := ctx.Bot().GetChatMember(ctx, &telego.GetChatMemberParams{
-		ChatID: message.Chat.ChatID(),
-		UserID: target.ID,
+		ChatID: chatID,
+		UserID: userID,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to check target user: %w", err)
@@ -127,11 +129,11 @@ func (h *handler) verifyNotAdmin(ctx *th.Context, message telego.Message, target
 }
 
 func (h *handler) restrictUser(
-	ctx *th.Context, message telego.Message, target *telego.User, duration time.Duration,
+	ctx *th.Context, chatID telego.ChatID, userID int64, duration time.Duration,
 ) error {
 	return ctx.Bot().RestrictChatMember(ctx, &telego.RestrictChatMemberParams{
-		ChatID:      message.Chat.ChatID(),
-		UserID:      target.ID,
+		ChatID:      chatID,
+		UserID:      userID,
 		UntilDate:   time.Now().Add(duration).Unix(),
 		Permissions: telegram.DenyAllPermissions(),
 	})
