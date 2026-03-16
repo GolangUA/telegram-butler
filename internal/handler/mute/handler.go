@@ -53,19 +53,19 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 
 	cmd, err := parseMuteCommand(message.Text)
 	if err != nil {
-		h.replyAndCleanup(ctx, log, message, err.Error())
+		h.replyWithError(ctx, log, message, err.Error())
 		return nil
 	}
 
 	target, err := resolveTarget(message)
 	if err != nil {
-		h.replyAndCleanup(ctx, log, message, err.Error())
+		h.replyWithError(ctx, log, message, err.Error())
 		return nil
 	}
 
 	err = h.verifyNotAdmin(ctx, message, target)
 	if err != nil {
-		h.replyAndCleanup(ctx, log, message, err.Error())
+		h.replyWithError(ctx, log, message, err.Error())
 		return nil
 	}
 
@@ -73,7 +73,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 	if err != nil {
 		log.Error("Failed to restrict user", slog.Any("error", err))
 
-		h.replyAndCleanup(ctx, log, message, "failed to mute user")
+		h.replyWithError(ctx, log, message, "failed to mute user")
 
 		return nil
 	}
@@ -87,7 +87,10 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		slog.String("reason", cmd.Reason),
 	)
 
-	h.notifyMute(ctx, log, message, targetName, cmd)
+	notifyErr := h.notifyMute(ctx, message, targetName, cmd)
+	if notifyErr != nil {
+		log.Error("Failed to send mute notification", slog.Any("error", notifyErr))
+	}
 
 	return nil
 }
@@ -135,8 +138,8 @@ func (h *handler) restrictUser(
 }
 
 func (h *handler) notifyMute(
-	ctx *th.Context, log *slog.Logger, message telego.Message, targetName string, cmd *command,
-) {
+	ctx *th.Context, message telego.Message, targetName string, cmd *command,
+) error {
 	formattedDuration := duration.Format(cmd.Duration)
 
 	var notification string
@@ -154,9 +157,8 @@ func (h *handler) notifyMute(
 		ParseMode:       telego.ModeMarkdownV2,
 		Text:            notification,
 	})
-	if err != nil {
-		log.Error("Failed to send mute notification", slog.Any("error", err))
-	}
+
+	return err
 }
 
 func resolveTarget(message telego.Message) (*telego.User, error) {
@@ -167,7 +169,14 @@ func resolveTarget(message telego.Message) (*telego.User, error) {
 	return message.ReplyToMessage.From, nil
 }
 
-func (h *handler) replyAndCleanup(ctx *th.Context, log *slog.Logger, message telego.Message, errText string) {
+func (h *handler) replyWithError(ctx *th.Context, log *slog.Logger, message telego.Message, errText string) {
+	err := h.sendAndCleanup(ctx, message, errText)
+	if err != nil {
+		log.Error("Failed to send error reply", slog.Any("error", err))
+	}
+}
+
+func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errText string) error {
 	reply, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
@@ -178,8 +187,7 @@ func (h *handler) replyAndCleanup(ctx *th.Context, log *slog.Logger, message tel
 		},
 	})
 	if err != nil {
-		log.Error("Failed to send error reply", slog.Any("error", err))
-		return
+		return err
 	}
 
 	bot := ctx.Bot()
@@ -194,6 +202,8 @@ func (h *handler) replyAndCleanup(ctx *th.Context, log *slog.Logger, message tel
 		_ = bot.DeleteMessage(deleteCtx, tu.Delete(chatID, cmdMessageID))
 		_ = bot.DeleteMessage(deleteCtx, tu.Delete(chatID, replyMessageID))
 	})
+
+	return nil
 }
 
 func displayName(user *telego.User) string {
