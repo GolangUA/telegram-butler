@@ -5,76 +5,64 @@ import (
 	"time"
 )
 
-func TestParseCommand(t *testing.T) {
+func TestParseMuteCommand(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name       string
+	tests := map[string]struct {
 		text       string
 		wantErr    bool
 		wantDur    time.Duration
 		wantReason string
 	}{
-		{
-			name:    "duration only",
+		"duration only": {
 			text:    "/m 1h",
 			wantDur: time.Hour,
 		},
-		{
-			name:       "duration with reason",
+		"duration with reason": {
 			text:       "/m 2d spam in chat",
 			wantDur:    2 * 24 * time.Hour,
 			wantReason: "spam in chat",
 		},
-		{
-			name:    "mute alias",
+		"mute alias": {
 			text:    "/mute 1w",
 			wantDur: 7 * 24 * time.Hour,
 		},
-		{
-			name:    "minutes",
+		"minutes": {
 			text:    "/m 30m",
 			wantDur: 30 * time.Minute,
 		},
-		{
-			name:    "minutes full",
+		"minutes full": {
 			text:    "/m 30minute",
 			wantDur: 30 * time.Minute,
 		},
-		{
-			name:    "months",
+		"months": {
 			text:    "/m 1mo",
 			wantDur: 30 * 24 * time.Hour,
 		},
-		{
-			name:    "months full",
+		"months full": {
 			text:    "/m 2month",
 			wantDur: 2 * 30 * 24 * time.Hour,
 		},
-		{
-			name:    "no arguments",
+		"no arguments": {
 			text:    "/m",
 			wantErr: true,
 		},
-		{
-			name:    "invalid duration format",
+		"invalid duration format": {
 			text:    "/m abc",
 			wantErr: true,
 		},
-		{
-			name:    "zero duration",
+		"zero duration": {
 			text:    "/m 0h",
 			wantErr: true,
 		},
-		{
-			name:    "negative-like duration",
+		"negative-like duration": {
 			text:    "/m -1h",
 			wantErr: true,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			cmd, err := parseMuteCommand(tt.text)
