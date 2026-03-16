@@ -199,6 +199,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 		deleteCtx, cancel := context.WithTimeout(context.Background(), errorDeleteDelay)
 		defer cancel()
 
+		// Best-effort cleanup — no logger available in deferred goroutine
 		_ = bot.DeleteMessage(deleteCtx, tu.Delete(chatID, cmdMessageID))
 		_ = bot.DeleteMessage(deleteCtx, tu.Delete(chatID, replyMessageID))
 	})
