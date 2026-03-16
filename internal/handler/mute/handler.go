@@ -11,6 +11,7 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
+	"github.com/GolangUA/telegram-butler/internal/duration"
 	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
@@ -50,7 +51,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	cmd, err := parseCommand(message.Text)
+	cmd, err := parseMuteCommand(message.Text)
 	if err != nil {
 		h.replyAndCleanup(ctx, log, message, err.Error())
 		return nil
@@ -136,7 +137,7 @@ func (h *handler) restrictUser(
 func (h *handler) notifyMute(
 	ctx *th.Context, log *slog.Logger, message telego.Message, targetName string, cmd *command,
 ) {
-	formattedDuration := formatDuration(cmd.Duration)
+	formattedDuration := duration.Format(cmd.Duration)
 
 	var notification string
 	if cmd.Reason != "" {
@@ -201,24 +202,4 @@ func displayName(user *telego.User) string {
 	}
 
 	return user.FirstName
-}
-
-func formatDuration(d time.Duration) string {
-	switch {
-	case d%(30*24*time.Hour) == 0:
-		months := int(d / (30 * 24 * time.Hour))
-		return fmt.Sprintf("%dmo", months)
-	case d%(7*24*time.Hour) == 0:
-		weeks := int(d / (7 * 24 * time.Hour))
-		return fmt.Sprintf("%dw", weeks)
-	case d%(24*time.Hour) == 0:
-		days := int(d / (24 * time.Hour))
-		return fmt.Sprintf("%dd", days)
-	case d%time.Hour == 0:
-		hours := int(d / time.Hour)
-		return fmt.Sprintf("%dh", hours)
-	default:
-		minutes := int(d / time.Minute)
-		return fmt.Sprintf("%dm", minutes)
-	}
 }
