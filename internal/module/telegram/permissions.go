@@ -2,7 +2,7 @@ package telegram
 
 import "github.com/mymmrac/telego"
 
-// DenyAllPermissions returns ChatPermissions with all send permissions set to false.
+// DenyAllPermissions returns ChatPermissions with all permissions set to false.
 func DenyAllPermissions() telego.ChatPermissions {
 	return telego.ChatPermissions{
 		CanSendMessages:       new(false),
@@ -15,5 +15,10 @@ func DenyAllPermissions() telego.ChatPermissions {
 		CanSendPolls:          new(false),
 		CanSendOtherMessages:  new(false),
 		CanAddWebPagePreviews: new(false),
+		CanEditTag:            new(false),
+		CanChangeInfo:         new(false),
+		CanInviteUsers:        new(false),
+		CanPinMessages:        new(false),
+		CanManageTopics:       new(false),
 	}
 }
