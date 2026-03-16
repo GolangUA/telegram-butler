@@ -145,7 +145,7 @@ func (h *handler) notifyMute(
 		h.mentionUser(target), h.mentionUser(message.From), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
-		notification += "\nReason: " + cmd.Reason
+		notification += "\n" + messages.MuteReason + ": " + cmd.Reason
 	}
 
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
