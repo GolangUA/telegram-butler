@@ -189,6 +189,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 		return err
 	}
 
+	// Capture values for the deferred goroutine — ctx won't be valid after handler returns
 	bot := ctx.Bot()
 	chatID := message.Chat.ChatID()
 	cmdMessageID := message.MessageID
