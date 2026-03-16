@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/mymmrac/telego"
@@ -46,7 +47,13 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 
 	chatID := message.Chat.ChatID()
 
-	if !h.isAdmin(ctx, chatID, message.From.ID) {
+	callerIsAdmin, err := h.isAdmin(ctx, chatID, message.From.ID)
+	if err != nil {
+		log.Error("Failed to check caller admin status", slog.Any("error", err))
+		return nil
+	}
+
+	if !callerIsAdmin {
 		return nil
 	}
 
@@ -62,9 +69,17 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	err = h.verifyNotAdmin(ctx, chatID, target.ID)
+	targetIsAdmin, err := h.isAdmin(ctx, chatID, target.ID)
 	if err != nil {
-		h.replyWithError(ctx, log, message, err.Error())
+		log.Error("Failed to check target user status", slog.Any("error", err))
+
+		h.replyWithError(ctx, log, message, "failed to check target user")
+
+		return nil
+	}
+
+	if targetIsAdmin {
+		h.replyWithError(ctx, log, message, "cannot mute an admin")
 		return nil
 	}
 
@@ -95,35 +110,21 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 	return nil
 }
 
-func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) bool {
-	member, err := ctx.Bot().GetChatMember(ctx, &telego.GetChatMemberParams{
-		ChatID: chatID,
-		UserID: userID,
-	})
-	if err != nil {
-		return false
-	}
-
-	status := member.MemberStatus()
-
-	return status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator
+var adminStatuses = []string{
+	telego.MemberStatusCreator,
+	telego.MemberStatusAdministrator,
 }
 
-func (h *handler) verifyNotAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) error {
+func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (bool, error) {
 	member, err := ctx.Bot().GetChatMember(ctx, &telego.GetChatMemberParams{
 		ChatID: chatID,
 		UserID: userID,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to check target user: %w", err)
+		return false, fmt.Errorf("failed to check user status: %w", err)
 	}
 
-	status := member.MemberStatus()
-	if status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator {
-		return errors.New("cannot mute an admin")
-	}
-
-	return nil
+	return slices.Contains(adminStatuses, member.MemberStatus()), nil
 }
 
 func (h *handler) restrictUser(
