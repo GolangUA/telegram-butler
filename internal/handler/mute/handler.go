@@ -80,16 +80,17 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	targetName := h.mentionUser(target)
-
 	log.Info("User muted",
-		slog.String("target", targetName),
-		slog.Int64("target_id", target.ID),
+		slog.Group("target",
+			slog.String("username", target.Username),
+			slog.String("first_name", target.FirstName),
+			slog.Int64("id", target.ID),
+		),
 		slog.String("duration", cmd.Duration.String()),
 		slog.String("reason", cmd.Reason),
 	)
 
-	notifyErr := h.notifyMute(ctx, message, targetName, cmd)
+	notifyErr := h.notifyMute(ctx, message, target, cmd)
 	if notifyErr != nil {
 		log.Error("Failed to send mute notification", slog.Any("error", notifyErr))
 	}
@@ -140,10 +141,10 @@ func (h *handler) restrictUser(
 }
 
 func (h *handler) notifyMute(
-	ctx *th.Context, message telego.Message, targetName string, cmd *command,
+	ctx *th.Context, message telego.Message, target *telego.User, cmd *command,
 ) error {
 	notification := fmt.Sprintf(messages.MuteNotification,
-		targetName, h.mentionUser(message.From), duration.Format(cmd.Duration))
+		h.mentionUser(target), h.mentionUser(message.From), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
 		notification += "\nReason: " + cmd.Reason
