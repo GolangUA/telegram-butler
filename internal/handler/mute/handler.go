@@ -142,15 +142,11 @@ func (h *handler) restrictUser(
 func (h *handler) notifyMute(
 	ctx *th.Context, message telego.Message, targetName string, cmd *command,
 ) error {
-	formattedDuration := duration.Format(cmd.Duration)
+	notification := fmt.Sprintf(messages.MuteNotification,
+		targetName, message.From.Username, duration.Format(cmd.Duration))
 
-	var notification string
 	if cmd.Reason != "" {
-		notification = fmt.Sprintf(messages.MuteWithReason,
-			targetName, message.From.Username, formattedDuration, cmd.Reason)
-	} else {
-		notification = fmt.Sprintf(messages.MuteWithoutReason,
-			targetName, message.From.Username, formattedDuration)
+		notification += "\nReason: " + cmd.Reason
 	}
 
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{

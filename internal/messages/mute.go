@@ -1,8 +1,7 @@
 package messages
 
 const (
-	MuteWithoutReason = "🔇 @%s muted by @%s for %s"
-	MuteWithReason    = "🔇 @%s muted by @%s for %s\nReason: %s"
+	MuteNotification = "🔇 @%s muted by @%s for %s"
 
 	MuteError = "⚠️ Command error\n\n" +
 		"Command: `%s`\n" +
