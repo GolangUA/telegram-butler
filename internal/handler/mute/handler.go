@@ -37,7 +37,7 @@ type handler struct{}
 func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
-	log = log.With(slog.Group("caller",
+	log = log.With(slog.Group("user",
 		slog.String("username", message.From.Username),
 		slog.Int64("id", message.From.ID),
 	))
