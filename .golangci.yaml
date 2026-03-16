@@ -53,6 +53,8 @@ linters:
       locale: US
     nestif:
       min-complexity: 7
+    nolintlint:
+      require-specific: true
     revive:
       enable-all-rules: true
       rules:
