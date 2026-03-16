@@ -27,13 +27,8 @@ func parseMuteCommand(text string) (*command, error) {
 		return nil, err
 	}
 
-	cmd := &command{
+	return &command{
 		Duration: d,
-	}
-
-	if len(args) > 1 {
-		cmd.Reason = strings.Join(args[1:], " ")
-	}
-
-	return cmd, nil
+		Reason:   strings.Join(args[1:], " "),
+	}, nil
 }
