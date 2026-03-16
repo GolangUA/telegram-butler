@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html"
 	"log/slog"
 	"slices"
 	"time"
@@ -145,7 +146,7 @@ func (h *handler) notifyMute(
 		h.mentionUser(target), h.mentionUser(message.From), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
-		notification += "\n" + messages.MuteReason + ": " + cmd.Reason
+		notification += "\n" + messages.MuteReason + ": " + html.EscapeString(cmd.Reason)
 	}
 
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
@@ -180,7 +181,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
-		Text:            fmt.Sprintf(messages.MuteError, message.Text, errText),
+		Text:            fmt.Sprintf(messages.MuteError, html.EscapeString(message.Text), html.EscapeString(errText)),
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
@@ -207,12 +208,12 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	return nil
 }
 
-// mentionUser returns a MarkdownV2 inline mention link for the user.
+// mentionUser returns an HTML inline mention link for the user.
 // Can be moved to a shared package if reused by other handlers.
 func (*handler) mentionUser(user *telego.User) string {
-	name := user.FirstName
+	name := html.EscapeString(user.FirstName)
 	if user.Username != "" {
-		name = user.FirstName + " (@" + user.Username + ")"
+		name = html.EscapeString(user.FirstName) + " (@" + html.EscapeString(user.Username) + ")"
 	}
 
 	return fmt.Sprintf("<a href=\"tg://user?id=%d\">%s</a>", user.ID, name)
