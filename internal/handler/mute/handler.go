@@ -167,7 +167,7 @@ func (h *handler) notifyMute(
 // Can be moved to a shared package if reused by other handlers.
 func (*handler) resolveTarget(message telego.Message) (*telego.User, error) {
 	if message.ReplyToMessage == nil || message.ReplyToMessage.From == nil {
-		return nil, errors.New("reply to a message to mute the user")
+		return nil, errors.New("command must be a reply to the target user's message")
 	}
 
 	return message.ReplyToMessage.From, nil
