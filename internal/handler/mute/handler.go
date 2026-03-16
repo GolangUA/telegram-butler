@@ -12,23 +12,20 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 
 	"github.com/GolangUA/telegram-butler/internal/duration"
+	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
 	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
-const (
-	commandMute      = "m"
-	commandMuteFull  = "mute"
-	errorDeleteDelay = 15 * time.Second
-)
+const errorDeleteDelay = 15 * time.Second
 
 func Register(bh *th.BotHandler) {
 	h := &handler{}
 
 	bh.HandleMessage(h.handleMute, th.Or(
-		th.CommandEqual(commandMute),
-		th.CommandEqual(commandMuteFull),
+		th.CommandEqual(commands.Mute),
+		th.CommandEqual(commands.MuteFull),
 	))
 }
 
