@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/mymmrac/telego"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 func Sync(ctx context.Context, b *telego.Bot) error {
@@ -32,10 +33,8 @@ func syncPublicCommands(ctx context.Context, b *telego.Bot) error {
 }
 
 func syncAdminCommands(ctx context.Context, b *telego.Bot) error {
-	scope := &telego.BotCommandScopeAllChatAdministrators{Type: "all_chat_administrators"}
-
 	commands, err := b.GetMyCommands(ctx, &telego.GetMyCommandsParams{
-		Scope: scope,
+		Scope: tu.ScopeAllChatAdministrators(),
 	})
 	if err != nil {
 		return err
@@ -44,7 +43,7 @@ func syncAdminCommands(ctx context.Context, b *telego.Bot) error {
 	if !slices.Equal(commands, adminCommands) {
 		return b.SetMyCommands(ctx, &telego.SetMyCommandsParams{
 			Commands: adminCommands,
-			Scope:    scope,
+			Scope:    tu.ScopeAllChatAdministrators(),
 		})
 	}
 
