@@ -12,6 +12,6 @@ const (
 		// '_', '*', '[', ']', '(', ')', '~', '`', '>', '#',
 		// '+', '-', '=', '|', '{', '}', '.', '!'
 		// must be escaped with the preceding character '\'.
-		"Duration: m, h, d, w, mo \\(e\\.g\\. 30m, 1h, 2d, 1w, 1mo\\)\n\n" +
+		"Duration: m/min/minute, h, d, w, mo/month \\(e\\.g\\. 30m, 1h, 2d, 1w, 1mo\\)\n\n" +
 		"_This message will be deleted after 15 seconds_"
 )

@@ -17,7 +17,9 @@ const expectedMatches = 3
 func Parse(s string) (time.Duration, error) {
 	matches := regex.FindStringSubmatch(s)
 	if len(matches) != expectedMatches {
-		return 0, fmt.Errorf("invalid duration %q, expected: <number><m|h|d|w|mo> (e.g. 30m, 1h, 2d, 1w, 1mo)", s)
+		return 0, fmt.Errorf("invalid duration %q,"+
+			" expected: <number><m|min|minute|h|d|w|mo|month>"+
+			" (e.g. 30m, 1h, 2d, 1w, 1mo)", s)
 	}
 
 	n, err := strconv.Atoi(matches[1])
