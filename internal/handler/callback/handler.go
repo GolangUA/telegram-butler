@@ -58,6 +58,7 @@ func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) err
 		})
 		if err != nil {
 			log.Error("Join request approve error", slog.Any("error", err))
+			return nil
 		}
 
 		log.Info("Successfully approved join request")
