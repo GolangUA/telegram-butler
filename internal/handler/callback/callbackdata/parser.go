@@ -22,7 +22,7 @@ var (
 
 func Parse(data string) (*Payload, error) {
 	splits := strings.Split(data, "_")
-	if len(splits) != 3 { //nolint:gomnd,mnd
+	if len(splits) != 3 {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidCallbackData, splits)
 	}
 
