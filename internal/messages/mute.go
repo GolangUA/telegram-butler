@@ -1,7 +1,7 @@
 package messages
 
 const (
-	MuteNotification = "🔇 %s отримав мут від %s на %s"
+	MuteNotification = "🔇 %s отримав mute від %s на %s"
 
 	MuteReason = "Причина"
 

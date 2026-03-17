@@ -17,6 +17,6 @@ var publicCommands = []telego.BotCommand{
 }
 
 var adminCommands = []telego.BotCommand{
-	{Command: Mute, Description: "мут користувача (reply)"},
-	{Command: MuteFull, Description: "мут користувача (reply)"},
+	{Command: Mute, Description: "mute користувача (reply)"},
+	{Command: MuteFull, Description: "mute користувача (reply)"},
 }
