@@ -20,7 +20,10 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
-const errorDeleteDelay = 15 * time.Second
+const (
+	errorMessageLifetime = 15 * time.Second
+	deleteTimeout        = 5 * time.Second
+)
 
 func Register(bh *th.BotHandler) {
 	h := &handler{}
@@ -103,9 +106,9 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		slog.String("reason", cmd.Reason),
 	)
 
-	notifyErr := h.notifyMute(ctx, message, target, cmd)
-	if notifyErr != nil {
-		log.Error("Failed to send mute notification", slog.Any("error", notifyErr))
+	err = h.notifyMute(ctx, message, target, cmd)
+	if err != nil {
+		log.Error("Failed to send mute notification", slog.Any("error", err))
 	}
 
 	return nil
@@ -196,8 +199,8 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	cmdMessageID := message.MessageID
 	replyMessageID := reply.MessageID
 
-	time.AfterFunc(errorDeleteDelay, func() {
-		deleteCtx, cancel := context.WithTimeout(context.Background(), errorDeleteDelay)
+	time.AfterFunc(errorMessageLifetime, func() {
+		deleteCtx, cancel := context.WithTimeout(context.Background(), deleteTimeout)
 		defer cancel()
 
 		// Best-effort cleanup — no logger available in deferred goroutine
