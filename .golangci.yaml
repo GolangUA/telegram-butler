@@ -22,7 +22,6 @@ linters:
     - noctx
     - nonamedreturns
     - paralleltest
-    - sloglint
     - tagliatelle
     - testableexamples
     - testpackage
