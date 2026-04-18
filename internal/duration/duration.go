@@ -14,15 +14,15 @@ const (
 	month = 30 * day
 )
 
-var durationPattern = regexp.MustCompile(`^(\d+)(m|min|minute|h|d|w|mo|month)$`)
+var pattern = regexp.MustCompile(`^(\d+)(m|min|minute|h|d|w|mo|month)$`)
 
-// numDurationGroups is the number of submatches: full match + number + unit.
-const numDurationGroups = 3
+// numSubmatches is the number of submatches: full match + number + unit.
+const numSubmatches = 3
 
 // Parse parses a duration string like "1h", "30m", "2d", "1w", "1mo".
 func Parse(s string) (time.Duration, error) {
-	matches := durationPattern.FindStringSubmatch(s)
-	if len(matches) != numDurationGroups {
+	matches := pattern.FindStringSubmatch(s)
+	if len(matches) != numSubmatches {
 		return 0, fmt.Errorf("invalid duration %q,"+
 			" expected: <number><m|min|minute|h|d|w|mo|month>"+
 			" (e.g. 30m, 1h, 2d, 1w, 1mo)", s)

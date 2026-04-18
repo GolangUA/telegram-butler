@@ -14,16 +14,16 @@ type Payload struct {
 }
 
 var (
-	ErrInvalidCallbackData = errors.New("invalid callback query data token")
-	ErrInvalidGroupID      = errors.New("invalid groupID in callback query data")
-	ErrInvalidMessageID    = errors.New("invalid messageID in callback query data")
-	ErrInvalidDecision     = errors.New("invalid terms of use decision")
+	ErrInvalidData      = errors.New("invalid callback query data token")
+	ErrInvalidGroupID   = errors.New("invalid groupID in callback query data")
+	ErrInvalidMessageID = errors.New("invalid messageID in callback query data")
+	ErrInvalidDecision  = errors.New("invalid terms of use decision")
 )
 
 func Parse(data string) (*Payload, error) {
 	splits := strings.Split(data, "_")
 	if len(splits) != 3 {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidCallbackData, splits)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidData, splits)
 	}
 
 	groupID, err := strconv.ParseInt(splits[1], 10, 64)

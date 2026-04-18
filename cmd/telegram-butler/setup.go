@@ -53,7 +53,7 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 	log.Debug("Updates channel is configured")
 
-	bh, err := telegram.BotHandler(ctx, bot, updates)
+	bh, err := telegram.NewHandler(ctx, bot, updates)
 	if err != nil {
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}

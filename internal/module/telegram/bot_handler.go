@@ -10,7 +10,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-func BotHandler(ctx context.Context, bot *telego.Bot, updates <-chan telego.Update) (*th.BotHandler, error) {
+func NewHandler(ctx context.Context, bot *telego.Bot, updates <-chan telego.Update) (*th.BotHandler, error) {
 	log := logger.FromContext(ctx)
 
 	bh, err := th.NewBotHandler(bot, updates)
