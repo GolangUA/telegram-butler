@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/fatih/color v1.19.0
 	github.com/joho/godotenv v1.5.1
-	github.com/mymmrac/telego v1.7.0
+	github.com/mymmrac/telego v1.8.0
 	github.com/spf13/viper v1.21.0
 	golang.ngrok.com/ngrok/v2 v2.1.2
 	golang.org/x/oauth2 v0.36.0
