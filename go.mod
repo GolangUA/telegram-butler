@@ -7,7 +7,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mymmrac/telego v1.8.0
 	github.com/spf13/viper v1.21.0
-	golang.ngrok.com/ngrok/v2 v2.1.2
+	golang.ngrok.com/ngrok/v2 v2.1.3
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.275.0
 )
