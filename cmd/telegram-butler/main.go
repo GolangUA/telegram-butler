@@ -15,7 +15,7 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log := logger.SetupLogger(
+	log := logger.Setup(
 		viper.GetString("log-level"),
 		viper.GetString("log-format"),
 		viper.GetBool("log-source"),

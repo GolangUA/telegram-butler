@@ -10,13 +10,13 @@ import (
 	"google.golang.org/api/secretmanager/v1"
 )
 
-const BotTokenSecretID = "BOT_TOKEN"
+const BotTokenID = "BOT_TOKEN"
 
 type Client struct {
 	*secretmanager.Service
 }
 
-var ErrSecretAccessRequest = errors.New("secret access request failed")
+var ErrAccessRequest = errors.New("secret access request failed")
 
 func NewClient(ctx context.Context) (*Client, error) {
 	client, err := secretmanager.NewService(ctx)
@@ -28,7 +28,7 @@ func NewClient(ctx context.Context) (*Client, error) {
 }
 
 // GetSecretValue returns the value of the secret with the given secret version name.
-// Note: please, use the BuildSecretName function to build a correct secret version name.
+// Note: please, use the BuildName function to build a correct secret version name.
 func (c Client) GetSecretValue(ctx context.Context, name string) (string, error) {
 	resp, err := c.Projects.Secrets.Versions.Access(name).Context(ctx).Do()
 	if err != nil {
@@ -36,7 +36,7 @@ func (c Client) GetSecretValue(ctx context.Context, name string) (string, error)
 	}
 
 	if resp.HTTPStatusCode != http.StatusOK {
-		return "", fmt.Errorf("%w: code=%d, data=%v", ErrSecretAccessRequest, resp.HTTPStatusCode, resp.Payload.Data)
+		return "", fmt.Errorf("%w: code=%d, data=%v", ErrAccessRequest, resp.HTTPStatusCode, resp.Payload.Data)
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(resp.Payload.Data)
@@ -47,6 +47,6 @@ func (c Client) GetSecretValue(ctx context.Context, name string) (string, error)
 	return string(decoded), nil
 }
 
-func BuildSecretName(projectID, secretID, version string) string {
+func BuildName(projectID, secretID, version string) string {
 	return fmt.Sprintf("projects/%s/secrets/%s/versions/%s", projectID, secretID, version)
 }

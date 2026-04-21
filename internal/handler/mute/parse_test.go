@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestParseMuteCommand(t *testing.T) {
+func TestParseCommand(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -65,7 +65,7 @@ func TestParseMuteCommand(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cmd, err := parseMuteCommand(tt.text)
+			cmd, err := parseCommand(tt.text)
 
 			if tt.wantErr {
 				if err == nil {

@@ -9,9 +9,9 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
-func Bot() telegram.BotConfig {
-	return telegram.BotConfig{
-		BotToken: viper.GetString("bot-token"),
+func Bot() telegram.Config {
+	return telegram.Config{
+		Token: viper.GetString("bot-token"),
 	}
 }
 
@@ -22,7 +22,7 @@ func Webhook() (telegram.WebhookConfig, error) {
 	}
 
 	return telegram.WebhookConfig{
-		BotToken:   viper.GetString("bot-token"),
-		WebhookURL: *webhookURL,
+		Token: viper.GetString("bot-token"),
+		URL:   *webhookURL,
 	}, nil
 }

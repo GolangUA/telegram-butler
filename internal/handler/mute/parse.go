@@ -15,7 +15,7 @@ type command struct {
 	Reason   string
 }
 
-func parseMuteCommand(text string) (*command, error) {
+func parseCommand(text string) (*command, error) {
 	_, _, args := tu.ParseCommand(text)
 
 	if len(args) == 0 {

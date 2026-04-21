@@ -15,14 +15,14 @@ import (
 func Webhook(
 	ctx context.Context, cfg WebhookConfig, bot *telego.Bot, mux *http.ServeMux,
 ) (<-chan telego.Update, error) {
-	secretBytes := sha512.Sum512([]byte(cfg.BotToken))
+	secretBytes := sha512.Sum512([]byte(cfg.Token))
 	secretToken := hex.EncodeToString(secretBytes[:])
 
 	updates, err := bot.UpdatesViaWebhook(
 		ctx,
-		telego.WebhookHTTPServeMux(mux, cfg.WebhookURL.Path, secretToken),
+		telego.WebhookHTTPServeMux(mux, cfg.URL.Path, secretToken),
 		telego.WithWebhookSet(ctx, &telego.SetWebhookParams{
-			URL: cfg.WebhookURL.String(),
+			URL: cfg.URL.String(),
 			AllowedUpdates: []string{
 				telego.MessageUpdates,
 				telego.ChatJoinRequestUpdates,
@@ -39,14 +39,14 @@ func Webhook(
 }
 
 type WebhookConfig struct {
-	BotToken   string
-	WebhookURL url.URL
+	Token string
+	URL   url.URL
 }
 
 // LogValue satisfies the slog.LogValuer interface for WebhookConfig
 func (w WebhookConfig) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.String("bot_token", "[REDACTED]"),
-		slog.String("webhook_host", w.WebhookURL.Host),
+		slog.String("webhook_host", w.URL.Host),
 	)
 }

@@ -7,9 +7,9 @@ import (
 	"github.com/mymmrac/telego"
 )
 
-func Bot(ctx context.Context, cfg BotConfig) (*telego.Bot, error) {
+func Bot(ctx context.Context, cfg Config) (*telego.Bot, error) {
 	bot, err := telego.NewBot(
-		cfg.BotToken,
+		cfg.Token,
 		telego.WithDiscardLogger(),
 		telego.WithHealthCheck(ctx),
 	)
@@ -25,6 +25,6 @@ func Bot(ctx context.Context, cfg BotConfig) (*telego.Bot, error) {
 	return bot, nil
 }
 
-type BotConfig struct {
-	BotToken string
+type Config struct {
+	Token string
 }

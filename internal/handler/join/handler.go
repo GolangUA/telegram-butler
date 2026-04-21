@@ -94,7 +94,7 @@ func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinReques
 		log.Error("Sending terms of use failed", slog.Any("error", err))
 	}
 
-	k := tu.InlineKeyboard(
+	keyboard := tu.InlineKeyboard(
 		tu.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
 				Text:         AgreeText,
@@ -108,7 +108,7 @@ func (h *handler) chatJoinRequest(ctx *th.Context, request telego.ChatJoinReques
 	)
 
 	_, err = ctx.Bot().EditMessageReplyMarkup(ctx, &telego.EditMessageReplyMarkupParams{
-		ReplyMarkup: k,
+		ReplyMarkup: keyboard,
 		ChatID:      tu.ID(request.From.ID),
 		MessageID:   toEdit.MessageID,
 	})

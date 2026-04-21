@@ -61,7 +61,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	cmd, err := parseMuteCommand(message.Text)
+	cmd, err := parseCommand(message.Text)
 	if err != nil {
 		h.replyWithError(ctx, log, message, err.Error())
 		return nil
