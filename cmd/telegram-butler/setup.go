@@ -18,6 +18,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/report"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 	"github.com/GolangUA/telegram-butler/internal/repository/memory"
+	reportsvc "github.com/GolangUA/telegram-butler/internal/service/report"
 )
 
 func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
@@ -61,12 +62,13 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	}
 
 	voteRepo := memory.NewVoteRepository()
+	voteSvc := reportsvc.NewService(voteRepo, bot)
 
 	message.Register(bh)
 	join.Register(bh)
 	callback.Register(bh)
 	mute.Register(bh)
-	report.Register(bh, bot, voteRepo)
+	report.Register(bh, bot, voteSvc)
 
 	log.Debug("Bot handlers are registered")
 

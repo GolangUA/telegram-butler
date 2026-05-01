@@ -1,3 +1,11 @@
+// TODO(refactor, separate commit): align this package with internal/handler/report:
+//   - extract a service layer if business logic grows (e.g. shared mute-count escalation
+//     between /mute and /report); for now mute is stateless so service split is optional.
+//   - split free-function helpers from (h *handler) methods into render.go / parse.go
+//     for visual distinction (handler.go would then contain only struct methods).
+//   - consider extracting resolveTarget into a shared helper alongside the mention
+//     package — same pattern is duplicated in handler/report.
+
 package mute
 
 import (

@@ -1,49 +1,17 @@
-// TODO: move to concrete pkg
-
 package report
 
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/GolangUA/telegram-butler/internal/entity"
+	"github.com/GolangUA/telegram-butler/internal/module/logger"
 )
 
-const (
-	Quorum       = 5
-	VoteWindow   = 3 * time.Minute
-	MuteDuration = 3 * time.Hour
-
-	expireCleanupTimeout = 5 * time.Second
-)
-
-// Repository is the persistence layer the report handler depends on.
-type Repository interface {
-	Create(ctx context.Context, vote *entity.Vote) error
-	GetActive(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error)
-	AddVoter(ctx context.Context, chatID, targetUserID int64, voter entity.Voter) (*entity.Vote, error)
-	SetStatus(ctx context.Context, chatID, targetUserID int64, status string) error
-	ListActive(ctx context.Context) ([]*entity.Vote, error)
-}
-
-// VoteAction is sent from the callback handler to the vote goroutine.
-type VoteAction struct {
-	Voter entity.Voter
-}
-
-// VoteResult is returned from the goroutine to the callback handler.
-type VoteResult struct {
-	Vote     *entity.Vote
-	Finished bool
-	Error    error
-}
-
-// ExpireFunc is invoked from the goroutine on timer expiry.
-// This is the only path where the goroutine itself talks to Telegram —
-// no handler exists at that moment to do it on its behalf.
-type ExpireFunc func(ctx context.Context, vote *entity.Vote)
+const expireCleanupTimeout = 5 * time.Second
 
 type voteChannels struct {
 	in  chan VoteAction
@@ -51,6 +19,9 @@ type voteChannels struct {
 }
 
 // Coordinator owns the in-flight vote goroutines and their channels.
+// Each active vote gets one goroutine that holds vote state in memory and
+// owns all repo writes for that vote, so callback handlers can vote
+// concurrently without races.
 type Coordinator struct {
 	repo     Repository
 	onExpire ExpireFunc
@@ -71,6 +42,12 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 		out: make(chan VoteResult),
 	}
 	c.registry.Store(voteKey(vote.ChatID, vote.TargetUserID), ch)
+
+	slog.Default().Log(context.Background(), logger.LevelTrace, "vote goroutine started",
+		slog.Int64("chat_id", vote.ChatID),
+		slog.Int64("target_id", vote.TargetUserID),
+		slog.Time("expires_at", vote.ExpiresAt),
+	)
 
 	go c.run(vote, ch)
 }
@@ -128,6 +105,11 @@ func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
 					continue
 				}
 				updated.Status = entity.VoteStatusMuted
+				slog.Default().Log(ctx, logger.LevelTrace, "vote reached quorum",
+					slog.Int64("chat_id", vote.ChatID),
+					slog.Int64("target_id", vote.TargetUserID),
+					slog.Int("count", len(updated.Voters)),
+				)
 				ch.out <- VoteResult{Vote: updated, Finished: true}
 				return
 			}
