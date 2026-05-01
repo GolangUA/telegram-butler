@@ -12,12 +12,14 @@ const (
 	SendHelp       = "help"
 	Mute           = "m"
 	MuteFull       = "mute"
+	Report         = "report"
 )
 
 var publicCommands = []telego.BotCommand{
 	{Command: SendRules, Description: "правила спільноти"},
 	{Command: SendHelp, Description: "інформація про бота"},
 	{Command: SendUsefulInfo, Description: "корисна інформація по Go"},
+	{Command: Report, Description: "запропонувати mute (reply, голосування)"},
 }
 
 // Admins see only the most-specific scope's command list (Telegram does not merge scopes),

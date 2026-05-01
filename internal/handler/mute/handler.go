@@ -15,6 +15,7 @@ import (
 
 	"github.com/GolangUA/telegram-butler/internal/duration"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
+	"github.com/GolangUA/telegram-butler/internal/mention"
 	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
@@ -146,7 +147,7 @@ func (h *handler) notifyMute(
 	ctx *th.Context, message telego.Message, target *telego.User, cmd *command,
 ) error {
 	notification := fmt.Sprintf(messages.MuteNotification,
-		h.mentionUser(target), h.mentionUser(message.From), duration.Format(cmd.Duration))
+		mention.User(target), mention.User(message.From), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
 		notification += "\n" + messages.MuteReason + ": " + html.EscapeString(cmd.Reason)
@@ -209,15 +210,4 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	})
 
 	return nil
-}
-
-// mentionUser returns an HTML inline mention link for the user.
-// Can be moved to a shared package if reused by other handlers.
-func (*handler) mentionUser(user *telego.User) string {
-	name := html.EscapeString(user.FirstName)
-	if user.Username != "" {
-		name = html.EscapeString(user.FirstName) + " (@" + html.EscapeString(user.Username) + ")"
-	}
-
-	return fmt.Sprintf("<a href=\"tg://user?id=%d\">%s</a>", user.ID, name)
 }

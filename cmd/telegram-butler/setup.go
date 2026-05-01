@@ -15,7 +15,9 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/message"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
 	"github.com/GolangUA/telegram-butler/internal/handler/mute"
+	"github.com/GolangUA/telegram-butler/internal/handler/report"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
+	"github.com/GolangUA/telegram-butler/internal/repository/memory"
 )
 
 func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
@@ -58,10 +60,13 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}
 
+	voteRepo := memory.NewVoteRepository()
+
 	message.Register(bh)
 	join.Register(bh)
 	callback.Register(bh)
 	mute.Register(bh)
+	report.Register(bh, bot, voteRepo)
 
 	log.Debug("Bot handlers are registered")
 
