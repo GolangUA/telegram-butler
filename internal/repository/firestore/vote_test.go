@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -25,6 +24,10 @@ const (
 // package, points the SDK at it via FIRESTORE_EMULATOR_HOST, then tears
 // it down after the tests. Requires Docker (OrbStack / Docker Desktop)
 // to be running. No manual gcloud / docker setup needed.
+//
+// Uses panic for setup errors and a bare m.Run() at the end — explicit
+// log.Fatalf / os.Exit are flagged by revive's redundant-test-main-exit
+// (Go 1.15+ test runner exits with m.Run()'s code automatically).
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -37,28 +40,22 @@ func TestMain(m *testing.M) {
 		Started: true,
 	})
 	if err != nil {
-		log.Fatalf("start firestore emulator: %v", err)
+		panic(fmt.Errorf("start firestore emulator: %w", err))
 	}
+
+	defer func() { _ = container.Terminate(ctx) }()
 
 	port, err := container.MappedPort(ctx, "8080")
 	if err != nil {
-		_ = container.Terminate(ctx)
-
-		log.Fatalf("get mapped port: %v", err)
+		panic(fmt.Errorf("get mapped port: %w", err))
 	}
 
 	err = os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:"+port.Port())
 	if err != nil {
-		_ = container.Terminate(ctx)
-
-		log.Fatalf("set FIRESTORE_EMULATOR_HOST: %v", err)
+		panic(fmt.Errorf("set FIRESTORE_EMULATOR_HOST: %w", err))
 	}
 
-	code := m.Run()
-
-	_ = container.Terminate(ctx)
-
-	os.Exit(code)
+	m.Run()
 }
 
 // newTestRepo returns a fresh VoteRepository scoped to a unique collection
