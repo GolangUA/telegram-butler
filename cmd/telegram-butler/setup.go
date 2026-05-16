@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mymmrac/telego"
 	"github.com/spf13/viper"
 
 	"github.com/GolangUA/telegram-butler/internal/config"
@@ -23,6 +22,7 @@ import (
 	reportsvc "github.com/GolangUA/telegram-butler/internal/service/report"
 )
 
+//nolint:funlen // main entry composition — sequential init by design
 func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
 	log.Info("Setting up the Bot")
 
@@ -63,10 +63,18 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}
 
-	voteSvc, fsClient, err := setupVoteService(ctx, bot)
-	if err != nil {
-		return nil, nil, fmt.Errorf("vote service: %w", err)
+	projectID := viper.GetString("project-id")
+	if projectID == "" {
+		return nil, nil, errors.New("project-id is not set (expected env PROJECT_ID)")
 	}
+
+	fsClient, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("firestore client: %w", err)
+	}
+
+	voteRepo := firestore.NewVoteRepository(fsClient, firestore.DefaultCollection)
+	voteSvc := reportsvc.NewService(voteRepo, bot)
 
 	message.Register(bh)
 	join.Register(bh)
@@ -130,22 +138,4 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	}
 
 	return
-}
-
-// setupVoteService builds the Firestore-backed vote service and returns the
-// underlying client so the caller can close it on shutdown.
-func setupVoteService(ctx context.Context, bot *telego.Bot) (*reportsvc.Service, *firestore.Client, error) {
-	projectID := viper.GetString("project-id")
-	if projectID == "" {
-		return nil, nil, errors.New("project-id is not set (expected env PROJECT_ID)")
-	}
-
-	client, err := firestore.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, nil, fmt.Errorf("firestore client: %w", err)
-	}
-
-	repo := firestore.NewVoteRepository(client, firestore.DefaultCollection)
-
-	return reportsvc.NewService(repo, bot), client, nil
 }
