@@ -3,6 +3,7 @@ package report
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"time"
@@ -21,6 +22,12 @@ import (
 )
 
 const callbackPrefix = "report_vote_"
+
+// errReportInfra distinguishes infrastructure failures (Firestore unreachable,
+// Telegram admin API errors) from caller-side validation errors. Validation
+// failures stay silent (delete the caller's message); infra failures get a
+// visible chat reply so the user knows the bot is degraded.
+var errReportInfra = errors.New("infra failure")
 
 // Service is the abstract behavior the handler depends on. The concrete
 // implementation lives in internal/service/report; the handler only needs
@@ -54,8 +61,13 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 
 	err := h.validateReport(ctx, log, message)
 	if err != nil {
-		log.Log(ctx, logger.LevelTrace, "report rejected", slog.Any("error", err))
-		h.deleteSilent(ctx, message)
+		if errors.Is(err, errReportInfra) {
+			log.Error("Report infra failure", slog.Any("error", err))
+			h.replyInfraError(ctx, message)
+		} else {
+			log.Log(ctx, logger.LevelTrace, "report rejected", slog.Any("error", err))
+			h.deleteSilent(ctx, message)
+		}
 
 		return nil
 	}
@@ -218,7 +230,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 	isAdmin, err := h.isAdmin(ctx, chatID, target.ID)
 	if err != nil {
 		log.Error("Failed to check target admin status", slog.Any("error", err))
-		return errors.New("admin check failed")
+		return fmt.Errorf("%w: admin check: %w", errReportInfra, err)
 	}
 
 	if isAdmin {
@@ -232,7 +244,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		log.Error("Failed to check active vote", slog.Any("error", err))
-		return errors.New("active vote check failed")
+		return fmt.Errorf("%w: active vote check: %w", errReportInfra, err)
 	}
 
 	return nil
@@ -319,6 +331,20 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 	status := member.MemberStatus()
 
 	return status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator, nil
+}
+
+func (h *handler) replyInfraError(ctx *th.Context, message telego.Message) {
+	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+		ChatID:          message.Chat.ChatID(),
+		MessageThreadID: message.MessageThreadID,
+		Text:            messages.ReportInfraError,
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+	if err != nil {
+		logger.FromContext(ctx).Error("Failed to send infra error reply", slog.Any("error", err))
+	}
 }
 
 func (h *handler) deleteSilent(ctx *th.Context, message telego.Message) {
