@@ -17,17 +17,34 @@ tasks:
       - task: test
 
   run:local:
-    desc: "Run service locally"
+    desc: "Run service locally (host binary, emulator via localhost)"
     deps: [ firestore:up ]
+    env:
+      # Host process reaches OrbStack's forwarded emulator port directly.
+      FIRESTORE_EMULATOR_HOST: localhost:8085
     cmds:
       - go run -tags local ./cmd/telegram-butler/
 
   run:docker:
-    desc: "Run service locally in Docker"
+    desc: "Run service locally in Docker (emulator via host.docker.internal)"
     deps: [ firestore:up ]
+    env:
+      # Inside the container, host.docker.internal resolves to the host machine.
+      # `-e FIRESTORE_EMULATOR_HOST` forwards the shell value into the container.
+      FIRESTORE_EMULATOR_HOST: host.docker.internal:8085
     cmds:
       - docker build -f Dockerfile.local -t telegram-butler:local .
-      - docker run --rm --env-file .env -p 8080:8080 telegram-butler:local
+      - docker run --rm --env-file .env -e FIRESTORE_EMULATOR_HOST -p 8080:8080 telegram-butler:local
+
+  run:local:prod:
+    desc: "Run service locally against REAL Firestore in PROJECT_ID. Requires `gcloud auth application-default login` first. NO emulator dep."
+    env:
+      # Empty value overrides whatever .env sets — godotenv won't re-set an existing var.
+      # SDK treats empty FIRESTORE_EMULATOR_HOST the same as unset → uses real GCP via ADC.
+      FIRESTORE_EMULATOR_HOST: ""
+    cmds:
+      - echo "⚠️  Real Firestore writes will land in PROJECT_ID/report_votes — use with care."
+      - go run -tags local ./cmd/telegram-butler/
 
   firestore:up:
     desc: "Start Firestore emulator container (no-op if already running)"
