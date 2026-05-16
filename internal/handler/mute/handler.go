@@ -1,18 +1,8 @@
-// TODO(refactor, separate commit): align this package with internal/handler/report:
-//   - extract a service layer if business logic grows (e.g. shared mute-count escalation
-//     between /mute and /report); for now mute is stateless so service split is optional.
-//   - split free-function helpers from (h *handler) methods into render.go / parse.go
-//     for visual distinction (handler.go would then contain only struct methods).
-//   - consider extracting resolveTarget into a shared helper alongside the mention
-//     package — same pattern is duplicated in handler/report.
-
 package mute
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"html"
 	"log/slog"
 	"slices"
 	"time"
@@ -21,10 +11,7 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
-	"github.com/GolangUA/telegram-butler/internal/duration"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
-	"github.com/GolangUA/telegram-butler/internal/mention"
-	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
@@ -76,7 +63,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	target, err := h.resolveTarget(message)
+	target, err := resolveTarget(message)
 	if err != nil {
 		h.replyWithError(ctx, log, message, err.Error())
 		return nil
@@ -154,31 +141,14 @@ func (h *handler) restrictUser(
 func (h *handler) notifyMute(
 	ctx *th.Context, message telego.Message, target *telego.User, cmd *command,
 ) error {
-	notification := fmt.Sprintf(messages.MuteNotification,
-		mention.User(target), mention.User(message.From), duration.Format(cmd.Duration))
-
-	if cmd.Reason != "" {
-		notification += "\n" + messages.MuteReason + ": " + html.EscapeString(cmd.Reason)
-	}
-
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
-		Text:            notification,
+		Text:            formatMuteNotification(target, message.From, cmd),
 	})
 
 	return err
-}
-
-// resolveTarget extracts the target user from the replied message.
-// Can be moved to a shared package if reused by other handlers.
-func (*handler) resolveTarget(message telego.Message) (*telego.User, error) {
-	if message.ReplyToMessage == nil || message.ReplyToMessage.From == nil {
-		return nil, errors.New("command must be a reply to the target user's message")
-	}
-
-	return message.ReplyToMessage.From, nil
 }
 
 func (h *handler) replyWithError(ctx *th.Context, log *slog.Logger, message telego.Message, errText string) {
@@ -193,7 +163,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
-		Text:            fmt.Sprintf(messages.MuteError, html.EscapeString(message.Text), html.EscapeString(errText)),
+		Text:            formatMuteError(message.Text, errText),
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
