@@ -2,6 +2,7 @@ package report
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/mymmrac/telego"
@@ -50,6 +51,32 @@ func (s *Service) CastVote(ctx context.Context, chatID, targetUserID int64, vote
 // ActiveVote returns the active vote for a target, or entity.ErrVoteNotFound.
 func (s *Service) ActiveVote(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error) {
 	return s.repo.GetActive(ctx, chatID, targetUserID)
+}
+
+// Reconcile loads active votes from persistence and re-spawns a coordinator
+// goroutine for each. Intended to run once at startup. Past-deadline votes
+// are handled naturally — the goroutine's context.WithDeadline fires
+// immediately and the existing expiry path runs.
+func (s *Service) Reconcile(ctx context.Context) error {
+	votes, err := s.repo.ListActive(ctx)
+	if err != nil {
+		return fmt.Errorf("list active: %w", err)
+	}
+
+	log := slog.Default()
+	log.Info("Reconciling active votes", slog.Int("count", len(votes)))
+
+	for _, v := range votes {
+		s.coordinator.Start(v)
+
+		log.Info("Vote resumed",
+			slog.Int64("chat_id", v.ChatID),
+			slog.Int64("target_id", v.TargetUserID),
+			slog.Time("expires_at", v.ExpiresAt),
+		)
+	}
+
+	return nil
 }
 
 // notifyExpired runs in goroutine context — no callback handler is alive,
