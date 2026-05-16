@@ -34,12 +34,20 @@ func Setup(logLevel string, logFormat string, addSource bool) *slog.Logger {
 		},
 	}
 
+	var logger *slog.Logger
+
 	switch logFormat {
 	case "json":
-		return slog.New(slog.NewJSONHandler(os.Stdout, opts))
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, opts))
 	case "prettyjson":
-		return slog.New(NewPrettyHandler(os.Stdout, opts))
+		logger = slog.New(NewPrettyHandler(os.Stdout, opts))
 	default:
-		return slog.New(slog.NewTextHandler(os.Stdout, opts))
+		logger = slog.New(slog.NewTextHandler(os.Stdout, opts))
 	}
+
+	// Route the std `log` package through slog so library writes
+	// (ngrok agent proxy errors, etc.) use the same handler/format.
+	slog.SetDefault(logger)
+
+	return logger
 }

@@ -65,7 +65,7 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 		return err
 	}
 
-	timeStr := r.Time.Format("[15:05:05.000]")
+	timeStr := r.Time.Format("[15:04:05.000]")
 	msg := color.WhiteString(r.Message)
 
 	h.l.Println(timeStr, level, msg, color.CyanString(string(b)))
