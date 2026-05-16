@@ -62,6 +62,7 @@ func (h *handler) handleAgree(ctx *th.Context, query telego.CallbackQuery) error
 
 	msg := fmt.Sprintf(messages.Welcome, query.From.FirstName, viper.GetString("group-name"))
 	editMessage(ctx, log, query.From.ID, data.MessageID, msg)
+
 	return nil
 }
 
@@ -88,6 +89,7 @@ func (h *handler) handleDecline(ctx *th.Context, query telego.CallbackQuery) err
 
 	msg := fmt.Sprintf(messages.Decline, viper.GetString("admin-username"))
 	editMessage(ctx, log, query.From.ID, data.MessageID, msg)
+
 	return nil
 }
 
@@ -100,6 +102,7 @@ func logCtx(ctx *th.Context, query telego.CallbackQuery) *slog.Logger {
 	log.Log(ctx, logger.LevelTrace, "processing callback",
 		slog.String("data", query.Data),
 	)
+
 	return log
 }
 

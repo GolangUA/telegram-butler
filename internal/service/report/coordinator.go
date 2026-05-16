@@ -100,17 +100,21 @@ func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
 			}
 
 			if len(updated.Voters) >= Quorum {
-				if err := c.repo.SetStatus(ctx, vote.ChatID, vote.TargetUserID, entity.VoteStatusMuted); err != nil {
+				err := c.repo.SetStatus(ctx, vote.ChatID, vote.TargetUserID, entity.VoteStatusMuted)
+				if err != nil {
 					ch.out <- VoteResult{Error: err}
 					continue
 				}
+
 				updated.Status = entity.VoteStatusMuted
 				slog.Default().Log(ctx, logger.LevelTrace, "vote reached quorum",
 					slog.Int64("chat_id", vote.ChatID),
 					slog.Int64("target_id", vote.TargetUserID),
 					slog.Int("count", len(updated.Voters)),
 				)
+
 				ch.out <- VoteResult{Vote: updated, Finished: true}
+
 				return
 			}
 

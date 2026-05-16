@@ -14,6 +14,7 @@ func HTML(id int64, firstName, username string) string {
 	if username != "" {
 		name += " (@" + html.EscapeString(username) + ")"
 	}
+
 	return fmt.Sprintf(`<a href="tg://user?id=%d">%s</a>`, id, name)
 }
 
@@ -28,6 +29,7 @@ func ByID(id int64, name string) string {
 	if name == "" {
 		name = fmt.Sprintf("user#%d", id)
 	}
+
 	return fmt.Sprintf(`<a href="tg://user?id=%d">%s</a>`, id, html.EscapeString(name))
 }
 
@@ -36,5 +38,6 @@ func DisplayName(u *telego.User) string {
 	if u.Username != "" {
 		return "@" + u.Username
 	}
+
 	return u.FirstName
 }

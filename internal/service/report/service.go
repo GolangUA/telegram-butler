@@ -25,15 +25,19 @@ type Service struct {
 func NewService(repo Repository, bot *telego.Bot) *Service {
 	s := &Service{repo: repo, bot: bot}
 	s.coordinator = NewCoordinator(repo, s.notifyExpired)
+
 	return s
 }
 
 // StartVote persists the vote and starts the per-vote coordinator goroutine.
 func (s *Service) StartVote(ctx context.Context, vote *entity.Vote) error {
-	if err := s.repo.Create(ctx, vote); err != nil {
+	err := s.repo.Create(ctx, vote)
+	if err != nil {
 		return err
 	}
+
 	s.coordinator.Start(vote)
+
 	return nil
 }
 

@@ -42,6 +42,7 @@ func renderMuteResult(vote *entity.Vote, admins []telego.ChatMember) string {
 	if mentions := adminMentions(admins); len(mentions) > 0 {
 		body += "\n\n" + fmt.Sprintf(messages.ReportVoteAdminsCC, strings.Join(mentions, " "))
 	}
+
 	return body
 }
 
@@ -52,8 +53,10 @@ func adminMentions(admins []telego.ChatMember) []string {
 		if u.IsBot {
 			continue
 		}
+
 		mentions = append(mentions, mention.User(&u))
 	}
+
 	return mentions
 }
 

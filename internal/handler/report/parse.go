@@ -23,6 +23,7 @@ func parseCallbackData(data string) (chatID, targetUserID int64, err error) {
 	}
 
 	rest := strings.TrimPrefix(data, callbackPrefix)
+
 	parts := strings.Split(rest, "_")
 	if len(parts) != 2 {
 		return 0, 0, fmt.Errorf("expected 2 parts, got %d", len(parts))
@@ -32,16 +33,20 @@ func parseCallbackData(data string) (chatID, targetUserID int64, err error) {
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid chatID: %w", err)
 	}
+
 	targetUserID, err = parseInt64(parts[1])
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid targetUserID: %w", err)
 	}
+
 	return chatID, targetUserID, nil
 }
 
 func parseInt64(s string) (int64, error) {
 	var n int64
+
 	_, err := fmt.Sscanf(s, "%d", &n)
+
 	return n, err
 }
 

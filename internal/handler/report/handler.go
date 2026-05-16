@@ -22,7 +22,7 @@ import (
 
 const callbackPrefix = "report_vote_"
 
-// Service is the abstract behaviour the handler depends on. The concrete
+// Service is the abstract behavior the handler depends on. The concrete
 // implementation lives in internal/service/report; the handler only needs
 // these three methods, so it accepts an interface instead of the struct.
 type Service interface {
@@ -55,6 +55,7 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 	if err := h.validateReport(ctx, log, message); err != nil {
 		log.Log(ctx, logger.LevelTrace, "report rejected", slog.Any("error", err))
 		h.deleteSilent(ctx, message)
+
 		return nil
 	}
 
@@ -90,6 +91,7 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 		log.Error("Failed to start vote", slog.Any("error", err))
 		// Best-effort cleanup — remove the vote message we just posted.
 		_ = h.bot.DeleteMessage(ctx, tu.Delete(message.Chat.ChatID(), sent.MessageID))
+
 		return nil
 	}
 
@@ -97,6 +99,7 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 		slog.Int64("target_id", target.ID),
 		slog.String("target", target.Username),
 	)
+
 	return nil
 }
 
@@ -119,6 +122,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 			slog.Int64("target_id", targetUserID),
 		)
 		h.answerToast(ctx, query.ID, messages.ReportToastTargetVoting)
+
 		return nil
 	}
 
@@ -126,6 +130,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 	if err != nil {
 		log.Error("Failed to get active vote", slog.Any("error", err))
 		h.answerToast(ctx, query.ID, "")
+
 		return nil
 	}
 
@@ -134,6 +139,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 			slog.Int64("target_id", targetUserID),
 		)
 		h.answerToast(ctx, query.ID, messages.ReportToastAlreadyVoted)
+
 		return nil
 	}
 
@@ -141,12 +147,14 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 	if err != nil {
 		log.Error("Failed to register vote", slog.Any("error", err))
 		h.answerToast(ctx, query.ID, "")
+
 		return nil
 	}
 
 	if result.Error != nil {
 		log.Error("Vote processing failed", slog.Any("error", result.Error))
 		h.answerToast(ctx, query.ID, "")
+
 		return nil
 	}
 
@@ -160,9 +168,11 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 	)
 
 	if result.Finished {
-		if err := h.applyMute(ctx, result.Vote); err != nil {
+		err := h.applyMute(ctx, result.Vote)
+		if err != nil {
 			log.Error("Failed to apply mute", slog.Any("error", err))
 		}
+
 		return nil
 	}
 
@@ -175,6 +185,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		slog.Int("message_id", result.Vote.MessageID),
 		slog.Int("count", len(result.Vote.Voters)),
 	)
+
 	return nil
 }
 
@@ -200,6 +211,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 		log.Error("Failed to check target admin status", slog.Any("error", err))
 		return errors.New("admin check failed")
 	}
+
 	if isAdmin {
 		return errors.New("target is admin")
 	}
@@ -208,6 +220,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 	if err == nil {
 		return errors.New("active vote exists")
 	}
+
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		log.Error("Failed to check active vote", slog.Any("error", err))
 		return errors.New("active vote check failed")
@@ -239,6 +252,7 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 	})
 	if err != nil {
 		log.Error("applyMute: failed to fetch admins for tagging", slog.Any("error", err))
+
 		admins = nil
 	}
 
@@ -256,6 +270,7 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 		slog.Int("message_id", vote.MessageID),
 		slog.Int("admin_mentions", len(admins)),
 	)
+
 	return nil
 }
 
@@ -277,6 +292,7 @@ func (h *handler) editVoteMessage(ctx context.Context, vote *entity.Vote) error 
 		ParseMode:   telego.ModeHTML,
 		ReplyMarkup: buildVoteKeyboard(vote),
 	})
+
 	return err
 }
 
@@ -290,17 +306,21 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 	}
 
 	status := member.MemberStatus()
+
 	return status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator, nil
 }
 
 func (h *handler) deleteSilent(ctx *th.Context, message telego.Message) {
-	if err := ctx.Bot().DeleteMessage(ctx, tu.Delete(message.Chat.ChatID(), message.MessageID)); err != nil {
+	err := ctx.Bot().DeleteMessage(ctx, tu.Delete(message.Chat.ChatID(), message.MessageID))
+	if err != nil {
 		logger.FromContext(ctx).Log(ctx, logger.LevelTrace, "failed to delete report message",
 			slog.Int("message_id", message.MessageID),
 			slog.Any("error", err),
 		)
+
 		return
 	}
+
 	logger.FromContext(ctx).Log(ctx, logger.LevelTrace, "report message deleted",
 		slog.Int("message_id", message.MessageID),
 	)
@@ -311,5 +331,6 @@ func (h *handler) answerToast(ctx *th.Context, queryID, text string) {
 	if text != "" {
 		params = params.WithText(text)
 	}
+
 	_ = ctx.Bot().AnswerCallbackQuery(ctx, params)
 }

@@ -29,6 +29,7 @@ func (r *VoteRepository) Create(_ context.Context, vote *entity.Vote) error {
 	defer r.mu.Unlock()
 
 	r.votes[key(vote.ChatID, vote.TargetUserID)] = vote
+
 	return nil
 }
 
@@ -70,6 +71,7 @@ func (r *VoteRepository) SetStatus(_ context.Context, chatID, targetUserID int64
 	}
 
 	vote.Status = status
+
 	return nil
 }
 
@@ -78,6 +80,7 @@ func (r *VoteRepository) ListActive(_ context.Context) ([]*entity.Vote, error) {
 	defer r.mu.Unlock()
 
 	active := make([]*entity.Vote, 0)
+
 	for _, v := range r.votes {
 		if v.Status == entity.VoteStatusActive {
 			active = append(active, v)
