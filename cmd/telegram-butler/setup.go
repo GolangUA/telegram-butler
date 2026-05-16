@@ -92,12 +92,13 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	// Best-effort: resume in-flight votes that were active when we last shut down.
 	// A Firestore outage here must not block startup — bounded timeout so a hung
 	// dial fails fast and /report just won't recover past votes until next boot.
+	// Local variable so the named return `err` stays clean if reconcile fails.
 	reconcileCtx, cancelReconcile := context.WithTimeout(ctx, reconcileTimeout)
 	defer cancelReconcile()
 
-	err = voteSvc.Reconcile(reconcileCtx)
-	if err != nil {
-		log.Warn("Failed to reconcile active votes", slog.Any("error", err))
+	reconcileErr := voteSvc.Reconcile(reconcileCtx)
+	if reconcileErr != nil {
+		log.Warn("Failed to reconcile active votes", slog.Any("error", reconcileErr))
 	}
 
 	srv := &http.Server{
