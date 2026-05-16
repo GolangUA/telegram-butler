@@ -3,6 +3,7 @@ package report
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -23,20 +24,24 @@ func TestCoordinator_ReachesQuorum(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now()
 
-	// Seed Quorum-1 voters; one more vote pushes over the line.
+	// Seed exactly Quorum-1 voters so a single Vote() call lands the quorum.
+	// Built dynamically so the test stays correct if Quorum is tuned.
+	seedVoters := make([]entity.Voter, 0, Quorum-1)
+	for i := range Quorum - 1 {
+		seedVoters = append(seedVoters, entity.Voter{
+			ID:        int64(100 + i),
+			FirstName: fmt.Sprintf("Seed%d", i),
+		})
+	}
+
 	vote := &entity.Vote{
 		ChatID:       1,
 		TargetUserID: 2,
 		ReporterID:   100,
-		Voters: []entity.Voter{
-			{ID: 100, FirstName: "R"},
-			{ID: 101, FirstName: "A"},
-			{ID: 102, FirstName: "B"},
-			{ID: 103, FirstName: "C"},
-		},
-		Status:    entity.VoteStatusActive,
-		CreatedAt: now,
-		ExpiresAt: now.Add(time.Minute),
+		Voters:       seedVoters,
+		Status:       entity.VoteStatusActive,
+		CreatedAt:    now,
+		ExpiresAt:    now.Add(time.Minute),
 	}
 
 	err := repo.Create(ctx, vote)
