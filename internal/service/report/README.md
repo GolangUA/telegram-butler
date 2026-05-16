@@ -3,7 +3,6 @@
 Community-driven moderation: any member can reply to a message with `/report` and start a 3-minute vote. If **N** unique members vote `[Mute]`, the target user is muted for 3 hours.
 
 Spec: [issue #104](https://github.com/GolangUA/telegram-butler/issues/104) — simplified scope (no Pardon side, no escalation).
-Design notes: [`tasks/2026-05-01-vote-mute-simplified-plan.md`](../../../../tasks/2026-05-01-vote-mute-simplified-plan.md), [`tasks/2026-04-03-callback-flow.md`](../../../../tasks/2026-04-03-callback-flow.md).
 
 ## Packages and responsibilities
 
