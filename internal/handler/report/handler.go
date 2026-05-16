@@ -146,6 +146,20 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 
 	current, err := h.svc.ActiveVote(ctx, chatID, targetUserID)
 	if err != nil {
+		// Stale-button path: the Firestore doc was deleted or never reconciled
+		// (data wipe, bot crash mid-vote, race orphan). Edit the message so the
+		// inert button doesn't keep confusing users.
+		if errors.Is(err, entity.ErrVoteNotFound) {
+			log.Log(ctx, logger.LevelTrace, "stale vote button tapped",
+				slog.Int64("chat_id", chatID),
+				slog.Int64("target_id", targetUserID),
+			)
+			h.editStaleMessage(ctx, query)
+			h.answerToast(ctx, query.ID, messages.ReportToastVoteStale)
+
+			return nil
+		}
+
 		log.Error("Failed to get active vote", slog.Any("error", err))
 		h.answerToast(ctx, query.ID, "")
 
@@ -163,6 +177,19 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 
 	result, err := h.svc.CastVote(ctx, chatID, targetUserID, voterFromUser(&query.From))
 	if err != nil {
+		// Same stale-button path as above — coordinator goroutine could have
+		// expired/died between the ActiveVote check above and this call.
+		if errors.Is(err, entity.ErrVoteNotFound) {
+			log.Log(ctx, logger.LevelTrace, "vote expired between check and cast",
+				slog.Int64("chat_id", chatID),
+				slog.Int64("target_id", targetUserID),
+			)
+			h.editStaleMessage(ctx, query)
+			h.answerToast(ctx, query.ID, messages.ReportToastVoteStale)
+
+			return nil
+		}
+
 		log.Error("Failed to register vote", slog.Any("error", err))
 		h.answerToast(ctx, query.ID, "")
 
@@ -339,6 +366,25 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 	status := member.MemberStatus()
 
 	return status == telego.MemberStatusCreator || status == telego.MemberStatusAdministrator, nil
+}
+
+// editStaleMessage rewrites a vote message whose backing state is gone
+// (Firestore doc missing or coordinator unregistered). Removes the keyboard
+// so the inert button doesn't keep collecting taps.
+func (h *handler) editStaleMessage(ctx context.Context, query telego.CallbackQuery) {
+	if query.Message == nil {
+		return
+	}
+
+	_, err := h.bot.EditMessageText(ctx, &telego.EditMessageTextParams{
+		ChatID:    query.Message.GetChat().ChatID(),
+		MessageID: query.Message.GetMessageID(),
+		Text:      messages.ReportVoteStale,
+		ParseMode: telego.ModeHTML,
+	})
+	if err != nil {
+		logger.FromContext(ctx).Error("Failed to edit stale vote message", slog.Any("error", err))
+	}
 }
 
 func (h *handler) replyInfraError(ctx *th.Context, message telego.Message) {
