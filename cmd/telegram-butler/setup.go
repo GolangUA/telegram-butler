@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/mymmrac/telego"
 	"github.com/spf13/viper"
 
 	"github.com/GolangUA/telegram-butler/internal/config"
@@ -17,7 +19,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/mute"
 	"github.com/GolangUA/telegram-butler/internal/handler/report"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
-	"github.com/GolangUA/telegram-butler/internal/repository/memory"
+	"github.com/GolangUA/telegram-butler/internal/repository/firestore"
 	reportsvc "github.com/GolangUA/telegram-butler/internal/service/report"
 )
 
@@ -61,8 +63,10 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}
 
-	voteRepo := memory.NewVoteRepository()
-	voteSvc := reportsvc.NewService(voteRepo, bot)
+	voteSvc, fsClient, err := setupVoteService(ctx, bot)
+	if err != nil {
+		return nil, nil, fmt.Errorf("vote service: %w", err)
+	}
 
 	message.Register(bh)
 	join.Register(bh)
@@ -71,6 +75,14 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	report.Register(bh, bot, voteSvc)
 
 	log.Debug("Bot handlers are registered")
+
+	// Best-effort: resume in-flight votes that were active when we last shut down.
+	// A Firestore outage here must not block startup — /report just won't recover
+	// past votes until the next reconcile.
+	err = voteSvc.Reconcile(ctx)
+	if err != nil {
+		log.Warn("Failed to reconcile active votes", slog.Any("error", err))
+	}
 
 	srv := &http.Server{
 		Addr:              ":" + viper.GetString("port"),
@@ -104,6 +116,11 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 		log.Debug("Handler stopped")
 
+		closeErr := fsClient.Close()
+		if closeErr != nil {
+			log.Error("Firestore client close failed", slog.Any("error", closeErr))
+		}
+
 		err = srv.Shutdown(ctx)
 		if err != nil {
 			return fmt.Errorf("stop webhook: %w", err)
@@ -113,4 +130,22 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	}
 
 	return
+}
+
+// setupVoteService builds the Firestore-backed vote service and returns the
+// underlying client so the caller can close it on shutdown.
+func setupVoteService(ctx context.Context, bot *telego.Bot) (*reportsvc.Service, *firestore.Client, error) {
+	projectID := viper.GetString("project-id")
+	if projectID == "" {
+		return nil, nil, errors.New("project-id is not set (expected env PROJECT_ID)")
+	}
+
+	client, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("firestore client: %w", err)
+	}
+
+	repo := firestore.NewVoteRepository(client, firestore.DefaultCollection)
+
+	return reportsvc.NewService(repo, bot), client, nil
 }

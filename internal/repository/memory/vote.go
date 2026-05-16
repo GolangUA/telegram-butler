@@ -1,3 +1,8 @@
+// Package memory is an in-memory implementation of the service/report
+// Repository interface. It is retained as a test double for coordinator
+// and service tests that need hermetic state without spinning up a
+// Firestore emulator. Production wires the Firestore implementation —
+// see internal/repository/firestore.
 package memory
 
 import (
