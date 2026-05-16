@@ -161,7 +161,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		}
 
 		log.Error("Failed to get active vote", slog.Any("error", err))
-		h.answerToast(ctx, query.ID, "")
+		h.answerToast(ctx, query.ID, messages.ReportToastInfra)
 
 		return nil
 	}
@@ -191,14 +191,14 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		}
 
 		log.Error("Failed to register vote", slog.Any("error", err))
-		h.answerToast(ctx, query.ID, "")
+		h.answerToast(ctx, query.ID, messages.ReportToastInfra)
 
 		return nil
 	}
 
 	if result.Error != nil {
 		log.Error("Vote processing failed", slog.Any("error", result.Error))
-		h.answerToast(ctx, query.ID, "")
+		h.answerToast(ctx, query.ID, messages.ReportToastInfra)
 
 		// result.Error is a domain field on VoteResult, not the function's err
 		// (which was handled above). Returning nil signals "handled" to telego.

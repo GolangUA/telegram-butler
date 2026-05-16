@@ -11,6 +11,7 @@ const (
 	ReportToastAlreadyVoted = "Ви вже проголосували"
 	ReportToastTargetVoting = "Ви не можете голосувати"
 	ReportToastVoteStale    = "Голосування більше не активне"
+	ReportToastInfra        = "Сталася помилка, спробуйте пізніше"
 
 	ReportInfraError = "⚠️ Сервіс тимчасово недоступний, спробуйте пізніше"
 	ReportVoteStale  = "❌ Голосування недоступне"
