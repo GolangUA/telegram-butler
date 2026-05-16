@@ -237,6 +237,14 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 		return errors.New("target is admin")
 	}
 
+	// NOTE: best-effort check, not atomic with the subsequent StartVote.
+	// Two concurrent /reports on the same target can both pass this gate
+	// before either writes its doc, leaving two active vote docs in
+	// Firestore. The second coordinator's registry entry overwrites the
+	// first (sync.Map at coordinator.go:44), so only one collects votes
+	// and the orphan auto-expires after 3 min. No double-mute risk.
+	// Proper fix: Firestore transaction inside Create that asserts no
+	// existing active vote for (chat, target). Deferred (rare race).
 	_, err = h.svc.ActiveVote(ctx, message.Chat.ID, target.ID)
 	if err == nil {
 		return errors.New("active vote exists")
