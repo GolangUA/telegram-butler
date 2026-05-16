@@ -37,7 +37,13 @@ func renderVoteMessage(vote *entity.Vote, target *telego.User) string {
 
 func renderMuteResult(vote *entity.Vote, admins []telego.ChatMember) string {
 	target := mention.ByID(vote.TargetUserID, vote.TargetName)
-	body := fmt.Sprintf(messages.ReportVoteMuted, target, duration.Format(reportsvc.MuteDuration), len(vote.Voters), reportsvc.Quorum)
+	body := fmt.Sprintf(
+		messages.ReportVoteMuted,
+		target,
+		duration.Format(reportsvc.MuteDuration),
+		len(vote.Voters),
+		reportsvc.Quorum,
+	)
 
 	if mentions := adminMentions(admins); len(mentions) > 0 {
 		body += "\n\n" + fmt.Sprintf(messages.ReportVoteAdminsCC, strings.Join(mentions, " "))

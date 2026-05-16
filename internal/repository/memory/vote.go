@@ -45,7 +45,9 @@ func (r *VoteRepository) GetActive(_ context.Context, chatID, targetUserID int64
 	return vote, nil
 }
 
-func (r *VoteRepository) AddVoter(_ context.Context, chatID, targetUserID int64, voter entity.Voter) (*entity.Vote, error) {
+func (r *VoteRepository) AddVoter(
+	_ context.Context, chatID, targetUserID int64, voter entity.Voter,
+) (*entity.Vote, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

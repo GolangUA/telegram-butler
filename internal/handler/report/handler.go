@@ -52,7 +52,8 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 		slog.Int64("id", message.From.ID),
 	))
 
-	if err := h.validateReport(ctx, log, message); err != nil {
+	err := h.validateReport(ctx, log, message)
+	if err != nil {
 		log.Log(ctx, logger.LevelTrace, "report rejected", slog.Any("error", err))
 		h.deleteSilent(ctx, message)
 
@@ -87,7 +88,8 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 
 	vote.MessageID = sent.MessageID
 
-	if err := h.svc.StartVote(ctx, vote); err != nil {
+	err = h.svc.StartVote(ctx, vote)
+	if err != nil {
 		log.Error("Failed to start vote", slog.Any("error", err))
 		// Best-effort cleanup — remove the vote message we just posted.
 		_ = h.bot.DeleteMessage(ctx, tu.Delete(message.Chat.ChatID(), sent.MessageID))
@@ -113,7 +115,11 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 
 	chatID, targetUserID, err := parseCallbackData(query.Data)
 	if err != nil {
-		log.Error("Failed to parse callback data", slog.Any("error", err), slog.String("data", query.Data))
+		log.Error("Failed to parse callback data",
+			slog.Any("error", err),
+			slog.String("data", query.Data),
+		)
+
 		return nil
 	}
 
@@ -155,7 +161,9 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		log.Error("Vote processing failed", slog.Any("error", result.Error))
 		h.answerToast(ctx, query.ID, "")
 
-		return nil
+		// result.Error is a domain field on VoteResult, not the function's err
+		// (which was handled above). Returning nil signals "handled" to telego.
+		return nil //nolint:nilerr
 	}
 
 	h.answerToast(ctx, query.ID, "")
@@ -168,7 +176,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 	)
 
 	if result.Finished {
-		err := h.applyMute(ctx, result.Vote)
+		err = h.applyMute(ctx, result.Vote)
 		if err != nil {
 			log.Error("Failed to apply mute", slog.Any("error", err))
 		}
@@ -176,7 +184,8 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil
 	}
 
-	if err := h.editVoteMessage(ctx, result.Vote); err != nil {
+	err = h.editVoteMessage(ctx, result.Vote)
+	if err != nil {
 		log.Error("Failed to edit vote message", slog.Any("error", err))
 		return nil
 	}
@@ -274,7 +283,9 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 	return nil
 }
 
-func (h *handler) sendVoteMessage(ctx context.Context, vote *entity.Vote, target *telego.User) (*telego.Message, error) {
+func (h *handler) sendVoteMessage(
+	ctx context.Context, vote *entity.Vote, target *telego.User,
+) (*telego.Message, error) {
 	return h.bot.SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          tu.ID(vote.ChatID),
 		MessageThreadID: vote.ThreadID,
