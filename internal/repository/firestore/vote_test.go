@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/GolangUA/telegram-butler/internal/entity"
 	"github.com/GolangUA/telegram-butler/internal/repository/firestore"
@@ -17,19 +21,50 @@ const (
 	testChatID  = int64(-100)
 )
 
+// TestMain starts a fresh Firestore emulator container for the whole
+// package, points the SDK at it via FIRESTORE_EMULATOR_HOST, then tears
+// it down after the tests. Requires Docker (OrbStack / Docker Desktop)
+// to be running. No manual gcloud / docker setup needed.
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "mtlynch/firestore-emulator:latest",
+			ExposedPorts: []string{"8080/tcp"},
+			WaitingFor:   wait.ForLog("Dev App Server is now running."),
+		},
+		Started: true,
+	})
+	if err != nil {
+		log.Fatalf("start firestore emulator: %v", err)
+	}
+
+	port, err := container.MappedPort(ctx, "8080")
+	if err != nil {
+		_ = container.Terminate(ctx)
+
+		log.Fatalf("get mapped port: %v", err)
+	}
+
+	err = os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:"+port.Port())
+	if err != nil {
+		_ = container.Terminate(ctx)
+
+		log.Fatalf("set FIRESTORE_EMULATOR_HOST: %v", err)
+	}
+
+	code := m.Run()
+
+	_ = container.Terminate(ctx)
+
+	os.Exit(code)
+}
+
 // newTestRepo returns a fresh VoteRepository scoped to a unique collection
-// for this test run. Skips if FIRESTORE_EMULATOR_HOST is not set.
-//
-// To run locally:
-//
-//	gcloud beta emulators firestore start --host-port=localhost:8085
-//	FIRESTORE_EMULATOR_HOST=localhost:8085 go test ./internal/repository/firestore/
+// per test (so tests don't pollute each other).
 func newTestRepo(t *testing.T) *firestore.VoteRepository {
 	t.Helper()
-
-	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
-		t.Skip("FIRESTORE_EMULATOR_HOST not set; skipping Firestore emulator tests")
-	}
 
 	ctx := context.Background()
 
@@ -40,7 +75,6 @@ func newTestRepo(t *testing.T) *firestore.VoteRepository {
 
 	t.Cleanup(func() { _ = client.Close() })
 
-	// Unique collection per test → no cross-test pollution and no manual cleanup.
 	collection := fmt.Sprintf("test_votes_%d_%s", time.Now().UnixNano(), t.Name())
 
 	return firestore.NewVoteRepository(client, collection)
