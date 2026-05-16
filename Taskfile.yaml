@@ -18,14 +18,39 @@ tasks:
 
   run:local:
     desc: "Run service locally"
+    deps: [ firestore:up ]
     cmds:
       - go run -tags local ./cmd/telegram-butler/
 
   run:docker:
     desc: "Run service locally in Docker"
+    deps: [ firestore:up ]
     cmds:
       - docker build -f Dockerfile.local -t telegram-butler:local .
       - docker run --rm --env-file .env -p 8080:8080 telegram-butler:local
+
+  firestore:up:
+    desc: "Start Firestore emulator container (no-op if already running)"
+    cmds:
+      - |
+        if [ -n "$(docker ps -q -f name=^fs-emulator$)" ]; then
+          echo "Firestore emulator already running on :8085"
+        else
+          echo "Starting Firestore emulator on :8085..."
+          docker run --rm -d --name fs-emulator -p 8085:8080 mtlynch/firestore-emulator:latest
+          # Boot wait — emulator takes ~2-3s to print "Dev App Server is now running"
+          sleep 3
+        fi
+
+  firestore:down:
+    desc: "Stop Firestore emulator container"
+    cmds:
+      - |
+        if [ -n "$(docker ps -q -f name=^fs-emulator$)" ]; then
+          docker stop fs-emulator
+        else
+          echo "Firestore emulator not running"
+        fi
 
   format:
     desc: "Run formatters"
