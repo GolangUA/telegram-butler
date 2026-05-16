@@ -15,6 +15,12 @@ import (
 // DefaultCollection is the Firestore collection that hosts vote documents.
 const DefaultCollection = "report_votes"
 
+// firestoreOpTimeout bounds every Firestore RPC. Without this, a single
+// /report (or coordinator goroutine vote) would hang for ~10 minutes when
+// the backend is unreachable, blocking the handler and producing a silent
+// UX. With it, requests fail fast and the caller sees errReportInfra.
+const firestoreOpTimeout = 5 * time.Second
+
 // VoteRepository persists community-vote state in Firestore.
 type VoteRepository struct {
 	col *fsdk.CollectionRef
@@ -30,6 +36,9 @@ func NewVoteRepository(client *Client, collection string) *VoteRepository {
 // preserved across re-reports of the same target. Active-vote uniqueness
 // is enforced at the handler layer (validateReport).
 func (r *VoteRepository) Create(ctx context.Context, vote *entity.Vote) error {
+	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
+	defer cancel()
+
 	id := buildDocID(vote.ChatID, vote.TargetUserID, vote.CreatedAt)
 
 	_, err := r.col.Doc(id).Set(ctx, toDoc(vote))
@@ -44,6 +53,9 @@ func (r *VoteRepository) Create(ctx context.Context, vote *entity.Vote) error {
 // entity.ErrVoteNotFound. The query relies on a composite index on
 // (chat_id, target_user_id, status).
 func (r *VoteRepository) GetActive(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error) {
+	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
+	defer cancel()
+
 	snap, err := r.findActive(ctx, chatID, targetUserID)
 	if err != nil {
 		return nil, err
@@ -58,6 +70,9 @@ func (r *VoteRepository) GetActive(ctx context.Context, chatID, targetUserID int
 func (r *VoteRepository) AddVoter(
 	ctx context.Context, chatID, targetUserID int64, voter entity.Voter,
 ) (*entity.Vote, error) {
+	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
+	defer cancel()
+
 	snap, err := r.findActive(ctx, chatID, targetUserID)
 	if err != nil {
 		return nil, err
@@ -84,6 +99,9 @@ func (r *VoteRepository) AddVoter(
 
 // SetStatus moves the active vote to a terminal state (muted / expired).
 func (r *VoteRepository) SetStatus(ctx context.Context, chatID, targetUserID int64, status string) error {
+	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
+	defer cancel()
+
 	snap, err := r.findActive(ctx, chatID, targetUserID)
 	if err != nil {
 		return err
@@ -102,6 +120,9 @@ func (r *VoteRepository) SetStatus(ctx context.Context, chatID, targetUserID int
 // ListActive returns every vote in the active state. Used at startup to
 // reconcile in-flight votes after a bot restart.
 func (r *VoteRepository) ListActive(ctx context.Context) ([]*entity.Vote, error) {
+	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
+	defer cancel()
+
 	iter := r.col.
 		Where("status", "==", entity.VoteStatusActive).
 		Documents(ctx)
