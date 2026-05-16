@@ -22,6 +22,11 @@ import (
 	reportsvc "github.com/GolangUA/telegram-butler/internal/service/report"
 )
 
+// reconcileTimeout bounds the startup reconciliation of in-flight votes.
+// If Firestore is unreachable, the bot still starts; recovery of past votes
+// just waits for the next boot.
+const reconcileTimeout = 10 * time.Second
+
 //nolint:funlen // main entry composition — sequential init by design
 func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
 	log.Info("Setting up the Bot")
@@ -85,9 +90,12 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 	log.Debug("Bot handlers are registered")
 
 	// Best-effort: resume in-flight votes that were active when we last shut down.
-	// A Firestore outage here must not block startup — /report just won't recover
-	// past votes until the next reconcile.
-	err = voteSvc.Reconcile(ctx)
+	// A Firestore outage here must not block startup — bounded timeout so a hung
+	// dial fails fast and /report just won't recover past votes until next boot.
+	reconcileCtx, cancelReconcile := context.WithTimeout(ctx, reconcileTimeout)
+	defer cancelReconcile()
+
+	err = voteSvc.Reconcile(reconcileCtx)
 	if err != nil {
 		log.Warn("Failed to reconcile active votes", slog.Any("error", err))
 	}
