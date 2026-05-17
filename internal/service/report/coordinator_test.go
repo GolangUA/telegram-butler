@@ -114,8 +114,8 @@ func TestCoordinator_ExpiresWithoutQuorum(t *testing.T) {
 		t.Fatal("onExpire flag not set")
 	}
 
-	_, err = repo.GetActive(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2})
+	_, err = repo.Active(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
-		t.Errorf("GetActive after expire = %v, want ErrVoteNotFound", err)
+		t.Errorf("Active after expire = %v, want ErrVoteNotFound", err)
 	}
 }

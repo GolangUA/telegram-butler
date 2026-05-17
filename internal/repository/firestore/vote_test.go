@@ -94,7 +94,7 @@ func sampleVote(targetID int64, now time.Time) *entity.Vote {
 	}
 }
 
-func TestVoteRepository_Create_GetActive(t *testing.T) {
+func TestVoteRepository_Create_Active(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := context.Background()
 
@@ -108,9 +108,9 @@ func TestVoteRepository_Create_GetActive(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	got, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
+	got, err := repo.Active(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if err != nil {
-		t.Fatalf("GetActive: %v", err)
+		t.Fatalf("Active: %v", err)
 	}
 
 	if got.ChatID != -100 || got.TargetUserID != 200 {
@@ -130,11 +130,11 @@ func TestVoteRepository_Create_GetActive(t *testing.T) {
 	}
 }
 
-func TestVoteRepository_GetActive_NotFound(t *testing.T) {
+func TestVoteRepository_Active_NotFound(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := context.Background()
 
-	_, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 888})
+	_, err := repo.Active(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 888})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("err = %v, want ErrVoteNotFound", err)
 	}
@@ -164,9 +164,9 @@ func TestVoteRepository_AddVoter(t *testing.T) {
 	}
 
 	// Verify persistence: re-read independently.
-	got, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
+	got, err := repo.Active(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if err != nil {
-		t.Fatalf("GetActive after AddVoter: %v", err)
+		t.Fatalf("Active after AddVoter: %v", err)
 	}
 
 	if len(got.Voters) != 2 {
@@ -195,9 +195,9 @@ func TestVoteRepository_SetStatus_RemovesFromActive(t *testing.T) {
 		t.Fatalf("SetStatus: %v", err)
 	}
 
-	_, err = repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
+	_, err = repo.Active(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
-		t.Errorf("GetActive after SetStatus = %v, want ErrVoteNotFound", err)
+		t.Errorf("Active after SetStatus = %v, want ErrVoteNotFound", err)
 	}
 }
 

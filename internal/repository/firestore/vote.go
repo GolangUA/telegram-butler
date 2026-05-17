@@ -49,10 +49,10 @@ func (r *VoteRepository) Create(ctx context.Context, vote *entity.Vote) error {
 	return nil
 }
 
-// GetActive returns the single active vote for a target, or
+// Active returns the single active vote for a target, or
 // entity.ErrVoteNotFound. The query relies on a composite index on
 // (chat_id, target_user_id, status).
-func (r *VoteRepository) GetActive(ctx context.Context, key entity.VoteKey) (*entity.Vote, error) {
+func (r *VoteRepository) Active(ctx context.Context, key entity.VoteKey) (*entity.Vote, error) {
 	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
 	defer cancel()
 

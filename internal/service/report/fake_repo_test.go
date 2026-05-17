@@ -28,7 +28,7 @@ func (r *fakeRepo) Create(_ context.Context, vote *entity.Vote) error {
 	return nil
 }
 
-func (r *fakeRepo) GetActive(_ context.Context, key entity.VoteKey) (*entity.Vote, error) {
+func (r *fakeRepo) Active(_ context.Context, key entity.VoteKey) (*entity.Vote, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
