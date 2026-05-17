@@ -47,17 +47,17 @@ func TestService_Reconcile_RespawnsActiveOnly(t *testing.T) {
 
 	err := repo.Create(ctx, active)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("create active vote: %v", err)
 	}
 
 	err = repo.Create(ctx, inactive)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("create inactive vote: %v", err)
 	}
 
 	err = repo.SetStatus(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 3}, entity.VoteStatusMuted)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("mark inactive vote as muted: %v", err)
 	}
 
 	s := NewService(repo, nil)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -74,14 +73,9 @@ func TestCoordinator_ExpiresWithoutQuorum(t *testing.T) {
 	t.Parallel()
 
 	repo := newFakeRepo()
-
-	var (
-		expireCalled atomic.Bool
-		done         = make(chan struct{})
-	)
+	done := make(chan struct{})
 
 	onExpire := func(_ context.Context, _ *entity.Vote) {
-		expireCalled.Store(true)
 		close(done)
 	}
 
@@ -110,10 +104,6 @@ func TestCoordinator_ExpiresWithoutQuorum(t *testing.T) {
 	case <-done:
 	case <-time.After(2 * time.Second):
 		t.Fatal("onExpire was not called within 2s")
-	}
-
-	if !expireCalled.Load() {
-		t.Fatal("onExpire flag not set")
 	}
 
 	_, err = repo.Active(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2})
