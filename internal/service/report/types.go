@@ -13,12 +13,6 @@ const (
 	MuteDuration = 3 * time.Hour
 )
 
-// VoteKey identifies an in-flight vote by (chat, target user) pair.
-type VoteKey struct {
-	ChatID       int64
-	TargetUserID int64
-}
-
 // VoteAction is sent from the callback handler to the vote goroutine.
 type VoteAction struct {
 	Voter entity.Voter

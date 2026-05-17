@@ -44,12 +44,12 @@ func (s *Service) StartVote(ctx context.Context, vote *entity.Vote) error {
 
 // CastVote registers a voter and returns the updated vote state.
 // Returns entity.ErrVoteNotFound if the vote is no longer active.
-func (s *Service) CastVote(ctx context.Context, key VoteKey, voter entity.Voter) (*VoteResult, error) {
+func (s *Service) CastVote(ctx context.Context, key entity.VoteKey, voter entity.Voter) (*VoteResult, error) {
 	return s.coordinator.Vote(ctx, key, voter)
 }
 
 // ActiveVote returns the active vote for a target, or entity.ErrVoteNotFound.
-func (s *Service) ActiveVote(ctx context.Context, key VoteKey) (*entity.Vote, error) {
+func (s *Service) ActiveVote(ctx context.Context, key entity.VoteKey) (*entity.Vote, error) {
 	return s.repo.GetActive(ctx, key.ChatID, key.TargetUserID)
 }
 

@@ -51,7 +51,7 @@ func TestCoordinator_ReachesQuorum(t *testing.T) {
 
 	c.Start(vote)
 
-	result, err := c.Vote(ctx, VoteKey{ChatID: 1, TargetUserID: 2}, entity.Voter{ID: 104, FirstName: "D"})
+	result, err := c.Vote(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2}, entity.Voter{ID: 104, FirstName: "D"})
 	if err != nil {
 		t.Fatalf("Vote: %v", err)
 	}

@@ -15,7 +15,7 @@ func TestService_ActiveVote_NotFound(t *testing.T) {
 
 	s := NewService(memory.NewVoteRepository(), nil)
 
-	_, err := s.ActiveVote(context.Background(), VoteKey{ChatID: 1, TargetUserID: 2})
+	_, err := s.ActiveVote(context.Background(), entity.VoteKey{ChatID: 1, TargetUserID: 2})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("err = %v, want ErrVoteNotFound", err)
 	}
@@ -69,13 +69,13 @@ func TestService_Reconcile_RespawnsActiveOnly(t *testing.T) {
 	}
 
 	// The resumed active vote should accept a new voter.
-	_, err = s.CastVote(ctx, VoteKey{ChatID: 1, TargetUserID: 2}, entity.Voter{ID: 200})
+	_, err = s.CastVote(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2}, entity.Voter{ID: 200})
 	if err != nil {
 		t.Errorf("CastVote on resumed vote: %v", err)
 	}
 
 	// The muted vote should NOT have a goroutine registered.
-	_, err = s.CastVote(ctx, VoteKey{ChatID: 1, TargetUserID: 3}, entity.Voter{ID: 200})
+	_, err = s.CastVote(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 3}, entity.Voter{ID: 200})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("CastVote on muted vote = %v, want ErrVoteNotFound", err)
 	}

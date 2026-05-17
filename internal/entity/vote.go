@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -12,6 +13,16 @@ const (
 )
 
 var ErrVoteNotFound = errors.New("vote not found")
+
+// VoteKey identifies an in-flight vote by (chat, target user) pair.
+type VoteKey struct {
+	ChatID       int64
+	TargetUserID int64
+}
+
+func (k VoteKey) String() string {
+	return fmt.Sprintf("%d_%d", k.ChatID, k.TargetUserID)
+}
 
 type Voter struct {
 	ID        int64
