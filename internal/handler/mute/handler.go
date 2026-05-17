@@ -121,7 +121,7 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 		UserID: userID,
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed to check user status: %w", err)
+		return false, fmt.Errorf("get chat member: %w", err)
 	}
 
 	return slices.Contains(adminStatuses, member.MemberStatus()), nil

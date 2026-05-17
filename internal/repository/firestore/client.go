@@ -21,7 +21,7 @@ type Client = fsdk.Client
 func NewClient(ctx context.Context, projectID string) (*Client, error) {
 	c, err := fsdk.NewClient(ctx, projectID)
 	if err != nil {
-		return nil, fmt.Errorf("firestore.NewClient: %w", err)
+		return nil, fmt.Errorf("connect to Firestore: %w", err)
 	}
 
 	return c, nil

@@ -96,7 +96,7 @@ func (s *Service) notifyExpired(ctx context.Context, vote *entity.Vote) {
 		ParseMode: telego.ModeHTML,
 	})
 	if err != nil {
-		slog.Error("notifyExpired: edit message failed", slog.Any("error", err))
+		slog.Error("vote expiry: edit message failed", slog.Any("error", err))
 		return
 	}
 

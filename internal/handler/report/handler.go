@@ -262,7 +262,10 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 	isAdmin, err := h.isAdmin(ctx, chatID, target.ID)
 	if err != nil {
 		log.Error("Failed to check target admin status", slog.Any("error", err))
-		return fmt.Errorf("%w: admin check: %w", errInfra, err)
+		// %v on err (not %w): keep errInfra the sole errors.Is target — avoid
+		// leaking transient sentinels (context.Canceled, etc.) from the bot
+		// API into the infra-failure category.
+		return fmt.Errorf("%w: admin check: %v", errInfra, err) //nolint:errorlint
 	}
 
 	if isAdmin {
@@ -284,7 +287,8 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		log.Error("Failed to check active vote", slog.Any("error", err))
-		return fmt.Errorf("%w: active vote check: %w", errInfra, err)
+		// Same %v/%w split as the admin check above.
+		return fmt.Errorf("%w: active vote check: %v", errInfra, err) //nolint:errorlint
 	}
 
 	return nil
@@ -312,7 +316,7 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 		ChatID: tu.ID(vote.ChatID),
 	})
 	if err != nil {
-		log.Error("applyMute: failed to fetch admins for tagging", slog.Any("error", err))
+		log.Warn("applyMute: failed to fetch admins for tagging", slog.Any("error", err))
 
 		admins = nil
 	}

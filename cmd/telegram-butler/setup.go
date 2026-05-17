@@ -42,7 +42,7 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 	err = commands.Sync(ctx, bot)
 	if err != nil {
-		return nil, nil, fmt.Errorf("sync commands failed: %w", err)
+		return nil, nil, fmt.Errorf("sync commands: %w", err)
 	}
 
 	log.Debug("Commands are synced")
