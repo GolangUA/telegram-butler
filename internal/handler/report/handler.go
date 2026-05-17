@@ -23,11 +23,11 @@ import (
 
 const callbackPrefix = "report_vote_"
 
-// errReportInfra distinguishes infrastructure failures (Firestore unreachable,
+// errInfra distinguishes infrastructure failures (Firestore unreachable,
 // Telegram admin API errors) from caller-side validation errors. Validation
 // failures stay silent (delete the caller's message); infra failures get a
 // visible chat reply so the user knows the bot is degraded.
-var errReportInfra = errors.New("infra failure")
+var errInfra = errors.New("infra failure")
 
 // Service is the abstract behavior the handler depends on. The concrete
 // implementation lives in internal/service/report; the handler only needs
@@ -61,7 +61,7 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 
 	err := h.validateReport(ctx, log, message)
 	if err != nil {
-		if errors.Is(err, errReportInfra) {
+		if errors.Is(err, errInfra) {
 			log.Error("Report infra failure", slog.Any("error", err))
 			h.replyInfraError(ctx, message)
 		} else {
@@ -166,7 +166,10 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil
 	}
 
-	if slices.ContainsFunc(current.Voters, func(v entity.Voter) bool { return v.ID == query.From.ID }) {
+	alreadyVoted := slices.ContainsFunc(current.Voters, func(v entity.Voter) bool {
+		return v.ID == query.From.ID
+	})
+	if alreadyVoted {
 		log.Log(ctx, logger.LevelTrace, "vote rejected: already voted",
 			slog.Int64("target_id", targetUserID),
 		)
@@ -257,7 +260,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 	isAdmin, err := h.isAdmin(ctx, chatID, target.ID)
 	if err != nil {
 		log.Error("Failed to check target admin status", slog.Any("error", err))
-		return fmt.Errorf("%w: admin check: %w", errReportInfra, err)
+		return fmt.Errorf("%w: admin check: %w", errInfra, err)
 	}
 
 	if isAdmin {
@@ -279,7 +282,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		log.Error("Failed to check active vote", slog.Any("error", err))
-		return fmt.Errorf("%w: active vote check: %w", errReportInfra, err)
+		return fmt.Errorf("%w: active vote check: %w", errInfra, err)
 	}
 
 	return nil

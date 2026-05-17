@@ -55,14 +55,16 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 // Vote sends a voter to the matching goroutine and waits for the result.
 // Returns entity.ErrVoteNotFound if no goroutine is registered for the vote.
 func (c *Coordinator) Vote(ctx context.Context, chatID, targetUserID int64, voter entity.Voter) (*VoteResult, error) {
-	val, ok := c.registry.Load(voteKey(chatID, targetUserID))
+	key := voteKey(chatID, targetUserID)
+
+	val, ok := c.registry.Load(key)
 	if !ok {
 		return nil, entity.ErrVoteNotFound
 	}
 
 	ch, ok := val.(*voteChannels)
 	if !ok {
-		return nil, fmt.Errorf("registry: unexpected value type %T for vote %d_%d", val, chatID, targetUserID)
+		return nil, fmt.Errorf("registry: unexpected value type %T for vote %s", val, key)
 	}
 
 	select {

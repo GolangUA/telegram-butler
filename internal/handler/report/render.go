@@ -30,9 +30,15 @@ func renderVoteMessage(vote *entity.Vote, target *telego.User) string {
 		voterLines = append(voterLines, "- "+mention.HTML(v.ID, v.FirstName, v.Username))
 	}
 
-	return fmt.Sprintf(messages.ReportVoteHeader, targetMention) +
-		"\n\n" +
-		fmt.Sprintf(messages.ReportVoteSection, len(vote.Voters), reportsvc.Quorum, strings.Join(voterLines, "\n"))
+	header := fmt.Sprintf(messages.ReportVoteHeader, targetMention)
+	section := fmt.Sprintf(
+		messages.ReportVoteSection,
+		len(vote.Voters),
+		reportsvc.Quorum,
+		strings.Join(voterLines, "\n"),
+	)
+
+	return header + "\n\n" + section
 }
 
 func renderMuteResult(vote *entity.Vote, admins []telego.ChatMember) string {
