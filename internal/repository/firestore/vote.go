@@ -96,7 +96,7 @@ func (r *VoteRepository) AddVoter(ctx context.Context, key entity.VoteKey, voter
 }
 
 // SetStatus moves the active vote to a terminal state (muted / expired).
-func (r *VoteRepository) SetStatus(ctx context.Context, key entity.VoteKey, status string) error {
+func (r *VoteRepository) SetStatus(ctx context.Context, key entity.VoteKey, status entity.VoteStatus) error {
 	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
 	defer cancel()
 
@@ -186,16 +186,16 @@ func decode(snap *fsdk.DocumentSnapshot) (*entity.Vote, error) {
 }
 
 type voteDoc struct {
-	ChatID       int64      `firestore:"chat_id"`
-	TargetUserID int64      `firestore:"target_user_id"`
-	TargetName   string     `firestore:"target_name"`
-	ReporterID   int64      `firestore:"reporter_id"`
-	MessageID    int        `firestore:"message_id"`
-	ThreadID     int        `firestore:"thread_id"`
-	Voters       []voterDoc `firestore:"voters"`
-	Status       string     `firestore:"status"`
-	CreatedAt    time.Time  `firestore:"created_at"`
-	ExpiresAt    time.Time  `firestore:"expires_at"`
+	ChatID       int64             `firestore:"chat_id"`
+	TargetUserID int64             `firestore:"target_user_id"`
+	TargetName   string            `firestore:"target_name"`
+	ReporterID   int64             `firestore:"reporter_id"`
+	MessageID    int               `firestore:"message_id"`
+	ThreadID     int               `firestore:"thread_id"`
+	Voters       []voterDoc        `firestore:"voters"`
+	Status       entity.VoteStatus `firestore:"status"`
+	CreatedAt    time.Time         `firestore:"created_at"`
+	ExpiresAt    time.Time         `firestore:"expires_at"`
 }
 
 type voterDoc struct {

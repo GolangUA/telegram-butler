@@ -35,6 +35,6 @@ type Repository interface {
 	Create(ctx context.Context, vote *entity.Vote) error
 	Active(ctx context.Context, key entity.VoteKey) (*entity.Vote, error)
 	AddVoter(ctx context.Context, key entity.VoteKey, voter entity.Voter) (*entity.Vote, error)
-	SetStatus(ctx context.Context, key entity.VoteKey, status string) error
+	SetStatus(ctx context.Context, key entity.VoteKey, status entity.VoteStatus) error
 	ListActive(ctx context.Context) ([]*entity.Vote, error)
 }

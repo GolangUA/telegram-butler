@@ -56,7 +56,7 @@ func (r *fakeRepo) AddVoter(_ context.Context, key entity.VoteKey, voter entity.
 	return vote, nil
 }
 
-func (r *fakeRepo) SetStatus(_ context.Context, key entity.VoteKey, status string) error {
+func (r *fakeRepo) SetStatus(_ context.Context, key entity.VoteKey, status entity.VoteStatus) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
