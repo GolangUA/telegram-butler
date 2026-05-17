@@ -322,9 +322,14 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 	)
 
 	// Telegram restriction succeeded — only now is it safe to commit muted.
-	// If this fails the user is muted but the vote stays Active; reconcile
-	// at next bot restart re-spawns the coordinator and the vote expires
-	// (cosmetic mismatch only — the restriction is real).
+	// If this Firestore write fails the user IS muted (the restriction is
+	// real) but the vote stays Active in Firestore. On next bot restart
+	// Reconcile re-spawns the coordinator, the expiry deadline fires
+	// immediately, and notifyExpired edits the vote message in chat to
+	// "expired without quorum" — misleading for admins reading the history.
+	// applyMute itself continues and the user still gets ReportToastVoted
+	// (the restriction succeeded; the Firestore mismatch is invisible to
+	// them). Acceptable trade-off given how rare this failure mode is.
 	err = h.svc.MarkMuted(ctx, vote.Key())
 	if err != nil {
 		log.Error("Failed to commit muted status (mute is applied)", slog.Any("error", err))

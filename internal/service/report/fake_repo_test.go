@@ -37,7 +37,7 @@ func (r *fakeRepo) Active(_ context.Context, key entity.VoteKey) (*entity.Vote, 
 		return nil, entity.ErrVoteNotFound
 	}
 
-	return vote, nil
+	return cloneVote(vote), nil
 }
 
 func (r *fakeRepo) AddVoter(_ context.Context, key entity.VoteKey, voter entity.Voter) (*entity.Vote, error) {
@@ -53,7 +53,7 @@ func (r *fakeRepo) AddVoter(_ context.Context, key entity.VoteKey, voter entity.
 		vote.Voters = append(vote.Voters, voter)
 	}
 
-	return vote, nil
+	return cloneVote(vote), nil
 }
 
 func (r *fakeRepo) SetStatus(_ context.Context, key entity.VoteKey, status entity.VoteStatus) error {
@@ -78,9 +78,19 @@ func (r *fakeRepo) ListActive(_ context.Context) ([]*entity.Vote, error) {
 
 	for _, v := range r.votes {
 		if v.Status == entity.VoteStatusActive {
-			active = append(active, v)
+			active = append(active, cloneVote(v))
 		}
 	}
 
 	return active, nil
+}
+
+// cloneVote returns a defensive copy with a cloned Voters slice so callers
+// can't mutate stored state. Matches Firestore semantics where each call
+// decodes a fresh struct from a snapshot.
+func cloneVote(v *entity.Vote) *entity.Vote {
+	out := *v
+	out.Voters = slices.Clone(v.Voters)
+
+	return &out
 }

@@ -20,7 +20,7 @@ const expireCleanupTimeout = 5 * time.Second
 type Coordinator struct {
 	repo     Repository
 	onExpire ExpireFunc
-	registry sync.Map // key: voteKey, value: chan<- VoteAction
+	registry sync.Map // key: entity.VoteKey, value: chan<- VoteAction
 }
 
 func NewCoordinator(repo Repository, onExpire ExpireFunc) *Coordinator {
@@ -33,7 +33,7 @@ func NewCoordinator(repo Repository, onExpire ExpireFunc) *Coordinator {
 // Start spawns a goroutine that owns the vote until quorum or expiry.
 func (c *Coordinator) Start(vote *entity.Vote) {
 	in := make(chan VoteAction)
-	c.registry.Store(vote.Key().String(), in)
+	c.registry.Store(vote.Key(), in)
 
 	slog.Default().Log(context.Background(), logger.LevelTrace, "vote goroutine started",
 		slog.Int64("chat_id", vote.ChatID),
@@ -47,7 +47,7 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 // Vote sends a voter to the matching goroutine and waits for the result.
 // Returns entity.ErrVoteNotFound if no goroutine is registered for the vote.
 func (c *Coordinator) Vote(ctx context.Context, key entity.VoteKey, voter entity.Voter) (*VoteResult, error) {
-	val, ok := c.registry.Load(key.String())
+	val, ok := c.registry.Load(key)
 	if !ok {
 		return nil, entity.ErrVoteNotFound
 	}
@@ -77,7 +77,7 @@ func (c *Coordinator) Vote(ctx context.Context, key entity.VoteKey, voter entity
 
 func (c *Coordinator) run(vote *entity.Vote, in <-chan VoteAction) {
 	key := vote.Key()
-	defer c.registry.Delete(key.String())
+	defer c.registry.Delete(key)
 
 	ctx, cancel := context.WithDeadline(context.Background(), vote.ExpiresAt)
 	defer cancel()

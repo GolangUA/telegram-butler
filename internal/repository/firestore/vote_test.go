@@ -25,9 +25,12 @@ const (
 // it down after the tests. Requires Docker (OrbStack / Docker Desktop)
 // to be running. No manual gcloud / docker setup needed.
 //
-// Uses panic for setup errors and a bare m.Run() at the end — explicit
+// Deferred teardown is safe here: m.Run() returns an int and never calls
+// os.Exit itself — the Go test runtime exits with that int AFTER TestMain
+// returns, so the deferred Terminate fires on normal return. Panics during
+// setup (lines below) also fire the defer via stack unwind. Explicit
 // log.Fatalf / os.Exit are flagged by revive's redundant-test-main-exit
-// (Go 1.15+ test runner exits with m.Run()'s code automatically).
+// rule (Go 1.15+ handles the exit code automatically).
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
