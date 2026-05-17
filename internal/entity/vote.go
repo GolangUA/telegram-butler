@@ -42,3 +42,7 @@ type Vote struct {
 	CreatedAt    time.Time
 	ExpiresAt    time.Time
 }
+
+func (v Vote) Key() VoteKey {
+	return VoteKey{ChatID: v.ChatID, TargetUserID: v.TargetUserID}
+}

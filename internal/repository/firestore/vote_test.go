@@ -108,7 +108,7 @@ func TestVoteRepository_Create_GetActive(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	got, err := repo.GetActive(ctx, testChatID, 200)
+	got, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if err != nil {
 		t.Fatalf("GetActive: %v", err)
 	}
@@ -134,7 +134,7 @@ func TestVoteRepository_GetActive_NotFound(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := context.Background()
 
-	_, err := repo.GetActive(ctx, testChatID, 888)
+	_, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 888})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("err = %v, want ErrVoteNotFound", err)
 	}
@@ -152,7 +152,7 @@ func TestVoteRepository_AddVoter(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	updated, err := repo.AddVoter(ctx, testChatID, 200, entity.Voter{
+	updated, err := repo.AddVoter(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200}, entity.Voter{
 		ID: 300, FirstName: "Second", Username: "second_voter",
 	})
 	if err != nil {
@@ -164,7 +164,7 @@ func TestVoteRepository_AddVoter(t *testing.T) {
 	}
 
 	// Verify persistence: re-read independently.
-	got, err := repo.GetActive(ctx, testChatID, 200)
+	got, err := repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if err != nil {
 		t.Fatalf("GetActive after AddVoter: %v", err)
 	}
@@ -190,12 +190,12 @@ func TestVoteRepository_SetStatus_RemovesFromActive(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	err = repo.SetStatus(ctx, testChatID, 200, entity.VoteStatusMuted)
+	err = repo.SetStatus(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200}, entity.VoteStatusMuted)
 	if err != nil {
 		t.Fatalf("SetStatus: %v", err)
 	}
 
-	_, err = repo.GetActive(ctx, testChatID, 200)
+	_, err = repo.GetActive(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 200})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("GetActive after SetStatus = %v, want ErrVoteNotFound", err)
 	}
@@ -219,7 +219,7 @@ func TestVoteRepository_ListActive(t *testing.T) {
 		}
 	}
 
-	err := repo.SetStatus(ctx, testChatID, 202, entity.VoteStatusMuted)
+	err := repo.SetStatus(ctx, entity.VoteKey{ChatID: testChatID, TargetUserID: 202}, entity.VoteStatusMuted)
 	if err != nil {
 		t.Fatalf("SetStatus: %v", err)
 	}

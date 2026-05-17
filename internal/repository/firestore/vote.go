@@ -52,11 +52,11 @@ func (r *VoteRepository) Create(ctx context.Context, vote *entity.Vote) error {
 // GetActive returns the single active vote for a target, or
 // entity.ErrVoteNotFound. The query relies on a composite index on
 // (chat_id, target_user_id, status).
-func (r *VoteRepository) GetActive(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error) {
+func (r *VoteRepository) GetActive(ctx context.Context, key entity.VoteKey) (*entity.Vote, error) {
 	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
 	defer cancel()
 
-	snap, err := r.findActive(ctx, chatID, targetUserID)
+	snap, err := r.findActive(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,11 @@ func (r *VoteRepository) GetActive(ctx context.Context, chatID, targetUserID int
 // AddVoter appends a voter to the active vote and returns the updated state.
 // Per-vote serialization lives in the coordinator goroutine, so no
 // transaction is needed here.
-func (r *VoteRepository) AddVoter(
-	ctx context.Context, chatID, targetUserID int64, voter entity.Voter,
-) (*entity.Vote, error) {
+func (r *VoteRepository) AddVoter(ctx context.Context, key entity.VoteKey, voter entity.Voter) (*entity.Vote, error) {
 	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
 	defer cancel()
 
-	snap, err := r.findActive(ctx, chatID, targetUserID)
+	snap, err := r.findActive(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -98,11 +96,11 @@ func (r *VoteRepository) AddVoter(
 }
 
 // SetStatus moves the active vote to a terminal state (muted / expired).
-func (r *VoteRepository) SetStatus(ctx context.Context, chatID, targetUserID int64, status string) error {
+func (r *VoteRepository) SetStatus(ctx context.Context, key entity.VoteKey, status string) error {
 	ctx, cancel := context.WithTimeout(ctx, firestoreOpTimeout)
 	defer cancel()
 
-	snap, err := r.findActive(ctx, chatID, targetUserID)
+	snap, err := r.findActive(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -151,12 +149,10 @@ func (r *VoteRepository) ListActive(ctx context.Context) ([]*entity.Vote, error)
 	return out, nil
 }
 
-func (r *VoteRepository) findActive(
-	ctx context.Context, chatID, targetUserID int64,
-) (*fsdk.DocumentSnapshot, error) {
+func (r *VoteRepository) findActive(ctx context.Context, key entity.VoteKey) (*fsdk.DocumentSnapshot, error) {
 	iter := r.col.
-		Where("chat_id", "==", chatID).
-		Where("target_user_id", "==", targetUserID).
+		Where("chat_id", "==", key.ChatID).
+		Where("target_user_id", "==", key.TargetUserID).
 		Where("status", "==", entity.VoteStatusActive).
 		Limit(1).
 		Documents(ctx)

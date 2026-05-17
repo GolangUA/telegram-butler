@@ -50,7 +50,7 @@ func (s *Service) CastVote(ctx context.Context, key entity.VoteKey, voter entity
 
 // ActiveVote returns the active vote for a target, or entity.ErrVoteNotFound.
 func (s *Service) ActiveVote(ctx context.Context, key entity.VoteKey) (*entity.Vote, error) {
-	return s.repo.GetActive(ctx, key.ChatID, key.TargetUserID)
+	return s.repo.GetActive(ctx, key)
 }
 
 // Reconcile loads active votes from persistence and re-spawns a coordinator

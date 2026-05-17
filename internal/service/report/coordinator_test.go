@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/GolangUA/telegram-butler/internal/entity"
-	"github.com/GolangUA/telegram-butler/internal/repository/memory"
 )
 
 func TestCoordinator_ReachesQuorum(t *testing.T) {
 	t.Parallel()
 
-	repo := memory.NewVoteRepository()
+	repo := newFakeRepo()
 	onExpire := func(_ context.Context, _ *entity.Vote) {
 		t.Error("onExpire should not be called when quorum is reached")
 	}
@@ -72,7 +71,7 @@ func TestCoordinator_ReachesQuorum(t *testing.T) {
 func TestCoordinator_ExpiresWithoutQuorum(t *testing.T) {
 	t.Parallel()
 
-	repo := memory.NewVoteRepository()
+	repo := newFakeRepo()
 
 	var (
 		expireCalled atomic.Bool
@@ -115,7 +114,7 @@ func TestCoordinator_ExpiresWithoutQuorum(t *testing.T) {
 		t.Fatal("onExpire flag not set")
 	}
 
-	_, err = repo.GetActive(ctx, 1, 2)
+	_, err = repo.GetActive(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 2})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
 		t.Errorf("GetActive after expire = %v, want ErrVoteNotFound", err)
 	}

@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/GolangUA/telegram-butler/internal/entity"
-	"github.com/GolangUA/telegram-butler/internal/repository/memory"
 )
 
 func TestService_ActiveVote_NotFound(t *testing.T) {
 	t.Parallel()
 
-	s := NewService(memory.NewVoteRepository(), nil)
+	s := NewService(newFakeRepo(), nil)
 
 	_, err := s.ActiveVote(context.Background(), entity.VoteKey{ChatID: 1, TargetUserID: 2})
 	if !errors.Is(err, entity.ErrVoteNotFound) {
@@ -24,7 +23,7 @@ func TestService_ActiveVote_NotFound(t *testing.T) {
 func TestService_Reconcile_RespawnsActiveOnly(t *testing.T) {
 	t.Parallel()
 
-	repo := memory.NewVoteRepository()
+	repo := newFakeRepo()
 	ctx := context.Background()
 	now := time.Now()
 
@@ -56,7 +55,7 @@ func TestService_Reconcile_RespawnsActiveOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = repo.SetStatus(ctx, 1, 3, entity.VoteStatusMuted)
+	err = repo.SetStatus(ctx, entity.VoteKey{ChatID: 1, TargetUserID: 3}, entity.VoteStatusMuted)
 	if err != nil {
 		t.Fatal(err)
 	}

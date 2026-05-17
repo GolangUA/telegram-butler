@@ -41,8 +41,7 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 		in:  make(chan VoteAction),
 		out: make(chan VoteResult),
 	}
-	key := entity.VoteKey{ChatID: vote.ChatID, TargetUserID: vote.TargetUserID}
-	c.registry.Store(key.String(), ch)
+	c.registry.Store(vote.Key().String(), ch)
 
 	slog.Default().Log(context.Background(), logger.LevelTrace, "vote goroutine started",
 		slog.Int64("chat_id", vote.ChatID),
@@ -81,7 +80,7 @@ func (c *Coordinator) Vote(ctx context.Context, key entity.VoteKey, voter entity
 }
 
 func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
-	key := entity.VoteKey{ChatID: vote.ChatID, TargetUserID: vote.TargetUserID}
+	key := vote.Key()
 	defer c.registry.Delete(key.String())
 
 	ctx, cancel := context.WithDeadline(context.Background(), vote.ExpiresAt)
@@ -94,14 +93,14 @@ func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
 			return
 
 		case action := <-ch.in:
-			updated, err := c.repo.AddVoter(ctx, vote.ChatID, vote.TargetUserID, action.Voter)
+			updated, err := c.repo.AddVoter(ctx, key, action.Voter)
 			if err != nil {
 				ch.out <- VoteResult{Error: err}
 				continue
 			}
 
 			if len(updated.Voters) >= Quorum {
-				err := c.repo.SetStatus(ctx, vote.ChatID, vote.TargetUserID, entity.VoteStatusMuted)
+				err := c.repo.SetStatus(ctx, key, entity.VoteStatusMuted)
 				if err != nil {
 					ch.out <- VoteResult{Error: err}
 					continue
@@ -128,6 +127,6 @@ func (c *Coordinator) handleExpire(vote *entity.Vote) {
 	ctx, cancel := context.WithTimeout(context.Background(), expireCleanupTimeout)
 	defer cancel()
 
-	_ = c.repo.SetStatus(ctx, vote.ChatID, vote.TargetUserID, entity.VoteStatusExpired)
+	_ = c.repo.SetStatus(ctx, vote.Key(), entity.VoteStatusExpired)
 	c.onExpire(ctx, vote)
 }
