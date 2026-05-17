@@ -41,7 +41,7 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 		in:  make(chan VoteAction),
 		out: make(chan VoteResult),
 	}
-	c.registry.Store(voteKey(vote.ChatID, vote.TargetUserID), ch)
+	c.registry.Store(voteKey(VoteKey{ChatID: vote.ChatID, TargetUserID: vote.TargetUserID}), ch)
 
 	slog.Default().Log(context.Background(), logger.LevelTrace, "vote goroutine started",
 		slog.Int64("chat_id", vote.ChatID),
@@ -54,17 +54,17 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 
 // Vote sends a voter to the matching goroutine and waits for the result.
 // Returns entity.ErrVoteNotFound if no goroutine is registered for the vote.
-func (c *Coordinator) Vote(ctx context.Context, chatID, targetUserID int64, voter entity.Voter) (*VoteResult, error) {
-	key := voteKey(chatID, targetUserID)
+func (c *Coordinator) Vote(ctx context.Context, key VoteKey, voter entity.Voter) (*VoteResult, error) {
+	registryKey := voteKey(key)
 
-	val, ok := c.registry.Load(key)
+	val, ok := c.registry.Load(registryKey)
 	if !ok {
 		return nil, entity.ErrVoteNotFound
 	}
 
 	ch, ok := val.(*voteChannels)
 	if !ok {
-		return nil, fmt.Errorf("registry: unexpected value type %T for vote %s", val, key)
+		return nil, fmt.Errorf("registry: unexpected value type %T for vote %s", val, registryKey)
 	}
 
 	select {
@@ -82,7 +82,7 @@ func (c *Coordinator) Vote(ctx context.Context, chatID, targetUserID int64, vote
 }
 
 func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
-	key := voteKey(vote.ChatID, vote.TargetUserID)
+	key := voteKey(VoteKey{ChatID: vote.ChatID, TargetUserID: vote.TargetUserID})
 	defer c.registry.Delete(key)
 
 	ctx, cancel := context.WithDeadline(context.Background(), vote.ExpiresAt)
@@ -133,6 +133,6 @@ func (c *Coordinator) handleExpire(vote *entity.Vote) {
 	c.onExpire(ctx, vote)
 }
 
-func voteKey(chatID, targetUserID int64) string {
-	return fmt.Sprintf("%d_%d", chatID, targetUserID)
+func voteKey(k VoteKey) string {
+	return fmt.Sprintf("%d_%d", k.ChatID, k.TargetUserID)
 }

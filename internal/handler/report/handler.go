@@ -34,8 +34,8 @@ var errInfra = errors.New("infra failure")
 // these three methods, so it accepts an interface instead of the struct.
 type Service interface {
 	StartVote(ctx context.Context, vote *entity.Vote) error
-	ActiveVote(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error)
-	CastVote(ctx context.Context, chatID, targetUserID int64, voter entity.Voter) (*reportsvc.VoteResult, error)
+	ActiveVote(ctx context.Context, key reportsvc.VoteKey) (*entity.Vote, error)
+	CastVote(ctx context.Context, key reportsvc.VoteKey, voter entity.Voter) (*reportsvc.VoteResult, error)
 }
 
 func Register(bh *th.BotHandler, bot *telego.Bot, svc Service) {
@@ -135,6 +135,8 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil
 	}
 
+	key := reportsvc.VoteKey{ChatID: chatID, TargetUserID: targetUserID}
+
 	if query.From.ID == targetUserID {
 		log.Log(ctx, logger.LevelTrace, "vote rejected: target voting on self",
 			slog.Int64("target_id", targetUserID),
@@ -144,7 +146,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil
 	}
 
-	current, err := h.svc.ActiveVote(ctx, chatID, targetUserID)
+	current, err := h.svc.ActiveVote(ctx, key)
 	if err != nil {
 		// Stale-button path: the Firestore doc was deleted or never reconciled
 		// (data wipe, bot crash mid-vote, race orphan). Edit the message so the
@@ -178,7 +180,7 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil
 	}
 
-	result, err := h.svc.CastVote(ctx, chatID, targetUserID, voterFromUser(&query.From))
+	result, err := h.svc.CastVote(ctx, key, voterFromUser(&query.From))
 	if err != nil {
 		// Same stale-button path as above — coordinator goroutine could have
 		// expired/died between the ActiveVote check above and this call.
@@ -275,7 +277,7 @@ func (h *handler) validateReport(ctx *th.Context, log *slog.Logger, message tele
 	// and the orphan auto-expires after 3 min. No double-mute risk.
 	// Proper fix: Firestore transaction inside Create that asserts no
 	// existing active vote for (chat, target). Deferred (rare race).
-	_, err = h.svc.ActiveVote(ctx, message.Chat.ID, target.ID)
+	_, err = h.svc.ActiveVote(ctx, reportsvc.VoteKey{ChatID: message.Chat.ID, TargetUserID: target.ID})
 	if err == nil {
 		return errors.New("active vote exists")
 	}

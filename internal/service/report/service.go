@@ -44,13 +44,13 @@ func (s *Service) StartVote(ctx context.Context, vote *entity.Vote) error {
 
 // CastVote registers a voter and returns the updated vote state.
 // Returns entity.ErrVoteNotFound if the vote is no longer active.
-func (s *Service) CastVote(ctx context.Context, chatID, targetUserID int64, voter entity.Voter) (*VoteResult, error) {
-	return s.coordinator.Vote(ctx, chatID, targetUserID, voter)
+func (s *Service) CastVote(ctx context.Context, key VoteKey, voter entity.Voter) (*VoteResult, error) {
+	return s.coordinator.Vote(ctx, key, voter)
 }
 
 // ActiveVote returns the active vote for a target, or entity.ErrVoteNotFound.
-func (s *Service) ActiveVote(ctx context.Context, chatID, targetUserID int64) (*entity.Vote, error) {
-	return s.repo.GetActive(ctx, chatID, targetUserID)
+func (s *Service) ActiveVote(ctx context.Context, key VoteKey) (*entity.Vote, error) {
+	return s.repo.GetActive(ctx, key.ChatID, key.TargetUserID)
 }
 
 // Reconcile loads active votes from persistence and re-spawns a coordinator
