@@ -8,6 +8,7 @@ const (
 	ReportVoteAdminsCC = "Cc: %s"
 	ReportVoteExpired  = "⏰ Голосування завершено — недостатньо голосів"
 
+	ReportToastVoted        = "✅"
 	ReportToastAlreadyVoted = "Ви вже проголосували"
 	ReportToastTargetVoting = "Ви не можете голосувати"
 	ReportToastVoteStale    = "Голосування більше не активне"

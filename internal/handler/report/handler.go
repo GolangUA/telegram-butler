@@ -212,8 +212,6 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		return nil //nolint:nilerr
 	}
 
-	h.answerToast(ctx, query.ID, "")
-
 	log.Log(ctx, logger.LevelTrace, "vote registered",
 		slog.Int64("target_id", targetUserID),
 		slog.Int("count", len(result.Vote.Voters)),
@@ -225,7 +223,12 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		err = h.applyMute(ctx, result.Vote)
 		if err != nil {
 			log.Error("Failed to apply mute", slog.Any("error", err))
+			h.answerToast(ctx, query.ID, messages.ReportToastInfra)
+
+			return nil
 		}
+
+		h.answerToast(ctx, query.ID, messages.ReportToastVoted)
 
 		return nil
 	}
@@ -233,6 +236,8 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 	err = h.editVoteMessage(ctx, result.Vote)
 	if err != nil {
 		log.Error("Failed to edit vote message", slog.Any("error", err))
+		h.answerToast(ctx, query.ID, messages.ReportToastVoted)
+
 		return nil
 	}
 
@@ -240,6 +245,8 @@ func (h *handler) handleVote(ctx *th.Context, query telego.CallbackQuery) error 
 		slog.Int("message_id", result.Vote.MessageID),
 		slog.Int("count", len(result.Vote.Voters)),
 	)
+
+	h.answerToast(ctx, query.ID, messages.ReportToastVoted)
 
 	return nil
 }
