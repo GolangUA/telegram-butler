@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,9 +16,18 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/handler/message"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
 	"github.com/GolangUA/telegram-butler/internal/handler/mute"
+	"github.com/GolangUA/telegram-butler/internal/handler/report"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
+	"github.com/GolangUA/telegram-butler/internal/repository/firestore"
+	reportsvc "github.com/GolangUA/telegram-butler/internal/service/report"
 )
 
+// reconcileTimeout bounds the startup reconciliation of in-flight votes.
+// If Firestore is unreachable, the bot still starts; recovery of past votes
+// just waits for the next boot.
+const reconcileTimeout = 10 * time.Second
+
+//nolint:funlen // main entry composition — sequential init by design
 func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
 	log.Info("Setting up the Bot")
 
@@ -32,7 +42,7 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 
 	err = commands.Sync(ctx, bot)
 	if err != nil {
-		return nil, nil, fmt.Errorf("sync commands failed: %w", err)
+		return nil, nil, fmt.Errorf("sync commands: %w", err)
 	}
 
 	log.Debug("Commands are synced")
@@ -58,12 +68,38 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		return nil, nil, fmt.Errorf("bot handler: %w", err)
 	}
 
+	projectID := viper.GetString("project-id")
+	if projectID == "" {
+		return nil, nil, errors.New("project-id is not set (expected env PROJECT_ID)")
+	}
+
+	fsClient, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("firestore client: %w", err)
+	}
+
+	voteRepo := firestore.NewVoteRepository(fsClient, firestore.DefaultCollection)
+	voteSvc := reportsvc.NewService(voteRepo, bot)
+
 	message.Register(bh)
 	join.Register(bh)
 	callback.Register(bh)
 	mute.Register(bh)
+	report.Register(bh, bot, voteSvc)
 
 	log.Debug("Bot handlers are registered")
+
+	// Best-effort: resume in-flight votes that were active when we last shut down.
+	// A Firestore outage here must not block startup — bounded timeout so a hung
+	// dial fails fast and /report just won't recover past votes until next boot.
+	// Local variable so the named return `err` stays clean if reconcile fails.
+	reconcileCtx, cancelReconcile := context.WithTimeout(ctx, reconcileTimeout)
+	defer cancelReconcile()
+
+	reconcileErr := voteSvc.Reconcile(reconcileCtx)
+	if reconcileErr != nil {
+		log.Warn("Failed to reconcile active votes", slog.Any("error", reconcileErr))
+	}
 
 	srv := &http.Server{
 		Addr:              ":" + viper.GetString("port"),
@@ -96,6 +132,11 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		}
 
 		log.Debug("Handler stopped")
+
+		closeErr := fsClient.Close()
+		if closeErr != nil {
+			log.Error("Firestore client close failed", slog.Any("error", closeErr))
+		}
 
 		err = srv.Shutdown(ctx)
 		if err != nil {

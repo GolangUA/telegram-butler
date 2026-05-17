@@ -2,9 +2,7 @@ package mute
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"html"
 	"log/slog"
 	"slices"
 	"time"
@@ -13,9 +11,7 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 
-	"github.com/GolangUA/telegram-butler/internal/duration"
 	"github.com/GolangUA/telegram-butler/internal/handler/message/commands"
-	"github.com/GolangUA/telegram-butler/internal/messages"
 	"github.com/GolangUA/telegram-butler/internal/module/logger"
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
@@ -67,7 +63,7 @@ func (h *handler) handleMute(ctx *th.Context, message telego.Message) error {
 		return nil
 	}
 
-	target, err := h.resolveTarget(message)
+	target, err := resolveTarget(message)
 	if err != nil {
 		h.replyWithError(ctx, log, message, err.Error())
 		return nil
@@ -125,7 +121,7 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 		UserID: userID,
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed to check user status: %w", err)
+		return false, fmt.Errorf("get chat member: %w", err)
 	}
 
 	return slices.Contains(adminStatuses, member.MemberStatus()), nil
@@ -145,31 +141,14 @@ func (h *handler) restrictUser(
 func (h *handler) notifyMute(
 	ctx *th.Context, message telego.Message, target *telego.User, cmd *command,
 ) error {
-	notification := fmt.Sprintf(messages.MuteNotification,
-		h.mentionUser(target), h.mentionUser(message.From), duration.Format(cmd.Duration))
-
-	if cmd.Reason != "" {
-		notification += "\n" + messages.MuteReason + ": " + html.EscapeString(cmd.Reason)
-	}
-
 	_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
-		Text:            notification,
+		Text:            formatMuteNotification(target, message.From, cmd),
 	})
 
 	return err
-}
-
-// resolveTarget extracts the target user from the replied message.
-// Can be moved to a shared package if reused by other handlers.
-func (*handler) resolveTarget(message telego.Message) (*telego.User, error) {
-	if message.ReplyToMessage == nil || message.ReplyToMessage.From == nil {
-		return nil, errors.New("command must be a reply to the target user's message")
-	}
-
-	return message.ReplyToMessage.From, nil
 }
 
 func (h *handler) replyWithError(ctx *th.Context, log *slog.Logger, message telego.Message, errText string) {
@@ -184,7 +163,7 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,
 		ParseMode:       telego.ModeHTML,
-		Text:            fmt.Sprintf(messages.MuteError, html.EscapeString(message.Text), html.EscapeString(errText)),
+		Text:            formatMuteError(message.Text, errText),
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
@@ -209,15 +188,4 @@ func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errTex
 	})
 
 	return nil
-}
-
-// mentionUser returns an HTML inline mention link for the user.
-// Can be moved to a shared package if reused by other handlers.
-func (*handler) mentionUser(user *telego.User) string {
-	name := html.EscapeString(user.FirstName)
-	if user.Username != "" {
-		name = html.EscapeString(user.FirstName) + " (@" + html.EscapeString(user.Username) + ")"
-	}
-
-	return fmt.Sprintf("<a href=\"tg://user?id=%d\">%s</a>", user.ID, name)
 }
