@@ -96,13 +96,9 @@ func (c *Coordinator) run(vote *entity.Vote, in <-chan VoteAction) {
 			}
 
 			if len(updated.Voters) >= Quorum {
-				err := c.repo.SetStatus(ctx, key, entity.VoteStatusMuted)
-				if err != nil {
-					action.Reply <- VoteResult{Error: err}
-					continue
-				}
-
-				updated.Status = entity.VoteStatusMuted
+				// Status stays VoteStatusActive here — the handler commits muted
+				// only after Telegram's RestrictChatMember succeeds, so Firestore
+				// never claims muted when the user wasn't actually restricted.
 				slog.Default().Log(ctx, logger.LevelTrace, "vote reached quorum",
 					slog.Int64("chat_id", vote.ChatID),
 					slog.Int64("target_id", vote.TargetUserID),

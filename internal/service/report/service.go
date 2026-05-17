@@ -53,6 +53,13 @@ func (s *Service) ActiveVote(ctx context.Context, key entity.VoteKey) (*entity.V
 	return s.repo.Active(ctx, key)
 }
 
+// MarkMuted commits the muted terminal status. Called by the handler after
+// Telegram's RestrictChatMember succeeds, so Firestore only flips to muted
+// when the user is actually restricted.
+func (s *Service) MarkMuted(ctx context.Context, key entity.VoteKey) error {
+	return s.repo.SetStatus(ctx, key, entity.VoteStatusMuted)
+}
+
 // Reconcile loads active votes from persistence and re-spawns a coordinator
 // goroutine for each. Intended to run once at startup. Past-deadline votes
 // are handled naturally — the goroutine's context.WithDeadline fires

@@ -59,8 +59,10 @@ func TestCoordinator_ReachesQuorum(t *testing.T) {
 		t.Error("result.Finished = false, want true")
 	}
 
-	if result.Vote.Status != entity.VoteStatusMuted {
-		t.Errorf("status = %q, want %q", result.Vote.Status, entity.VoteStatusMuted)
+	// Coordinator no longer commits muted — the handler does, after Telegram's
+	// RestrictChatMember succeeds. The vote stays Active at the result boundary.
+	if result.Vote.Status != entity.VoteStatusActive {
+		t.Errorf("status = %q, want %q", result.Vote.Status, entity.VoteStatusActive)
 	}
 
 	if len(result.Vote.Voters) != Quorum {

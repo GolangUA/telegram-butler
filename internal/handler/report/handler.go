@@ -36,6 +36,7 @@ type Service interface {
 	StartVote(ctx context.Context, vote *entity.Vote) error
 	ActiveVote(ctx context.Context, key entity.VoteKey) (*entity.Vote, error)
 	CastVote(ctx context.Context, key entity.VoteKey, voter entity.Voter) (*reportsvc.VoteResult, error)
+	MarkMuted(ctx context.Context, key entity.VoteKey) error
 }
 
 func Register(bh *th.BotHandler, bot *telego.Bot, svc Service) {
@@ -312,6 +313,15 @@ func (h *handler) applyMute(ctx context.Context, vote *entity.Vote) error {
 		slog.Int64("target_id", vote.TargetUserID),
 		slog.String("duration", reportsvc.MuteDuration.String()),
 	)
+
+	// Telegram restriction succeeded — only now is it safe to commit muted.
+	// If this fails the user is muted but the vote stays Active; reconcile
+	// at next bot restart re-spawns the coordinator and the vote expires
+	// (cosmetic mismatch only — the restriction is real).
+	err = h.svc.MarkMuted(ctx, vote.Key())
+	if err != nil {
+		log.Error("Failed to commit muted status (mute is applied)", slog.Any("error", err))
+	}
 
 	admins, err := h.bot.GetChatAdministrators(ctx, &telego.GetChatAdministratorsParams{
 		ChatID: tu.ID(vote.ChatID),
