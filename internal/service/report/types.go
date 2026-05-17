@@ -14,8 +14,11 @@ const (
 )
 
 // VoteAction is sent from the callback handler to the vote goroutine.
+// Reply must be a buffered (size 1) channel so the coordinator's send never
+// blocks even if the caller's context is canceled before the result arrives.
 type VoteAction struct {
 	Voter entity.Voter
+	Reply chan<- VoteResult
 }
 
 // VoteResult is returned from the goroutine to the callback handler.

@@ -13,11 +13,6 @@ import (
 
 const expireCleanupTimeout = 5 * time.Second
 
-type voteChannels struct {
-	in  chan VoteAction
-	out chan VoteResult
-}
-
 // Coordinator owns the in-flight vote goroutines and their channels.
 // Each active vote gets one goroutine that holds vote state in memory and
 // owns all repo writes for that vote, so callback handlers can vote
@@ -25,7 +20,7 @@ type voteChannels struct {
 type Coordinator struct {
 	repo     Repository
 	onExpire ExpireFunc
-	registry sync.Map // key: voteKey, value: *voteChannels
+	registry sync.Map // key: voteKey, value: chan<- VoteAction
 }
 
 func NewCoordinator(repo Repository, onExpire ExpireFunc) *Coordinator {
@@ -37,11 +32,8 @@ func NewCoordinator(repo Repository, onExpire ExpireFunc) *Coordinator {
 
 // Start spawns a goroutine that owns the vote until quorum or expiry.
 func (c *Coordinator) Start(vote *entity.Vote) {
-	ch := &voteChannels{
-		in:  make(chan VoteAction),
-		out: make(chan VoteResult),
-	}
-	c.registry.Store(vote.Key().String(), ch)
+	in := make(chan VoteAction)
+	c.registry.Store(vote.Key().String(), in)
 
 	slog.Default().Log(context.Background(), logger.LevelTrace, "vote goroutine started",
 		slog.Int64("chat_id", vote.ChatID),
@@ -49,7 +41,7 @@ func (c *Coordinator) Start(vote *entity.Vote) {
 		slog.Time("expires_at", vote.ExpiresAt),
 	)
 
-	go c.run(vote, ch)
+	go c.run(vote, in)
 }
 
 // Vote sends a voter to the matching goroutine and waits for the result.
@@ -60,26 +52,30 @@ func (c *Coordinator) Vote(ctx context.Context, key entity.VoteKey, voter entity
 		return nil, entity.ErrVoteNotFound
 	}
 
-	ch, ok := val.(*voteChannels)
+	in, ok := val.(chan VoteAction)
 	if !ok {
 		return nil, fmt.Errorf("registry: unexpected value type %T for vote %s", val, key)
 	}
 
+	// Buffered size 1 so the coordinator's send never blocks even if our
+	// context is canceled before we read the result.
+	reply := make(chan VoteResult, 1)
+
 	select {
-	case ch.in <- VoteAction{Voter: voter}:
+	case in <- VoteAction{Voter: voter, Reply: reply}:
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
 
 	select {
-	case result := <-ch.out:
+	case result := <-reply:
 		return &result, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
 }
 
-func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
+func (c *Coordinator) run(vote *entity.Vote, in <-chan VoteAction) {
 	key := vote.Key()
 	defer c.registry.Delete(key.String())
 
@@ -92,17 +88,17 @@ func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
 			c.handleExpire(vote)
 			return
 
-		case action := <-ch.in:
+		case action := <-in:
 			updated, err := c.repo.AddVoter(ctx, key, action.Voter)
 			if err != nil {
-				ch.out <- VoteResult{Error: err}
+				action.Reply <- VoteResult{Error: err}
 				continue
 			}
 
 			if len(updated.Voters) >= Quorum {
 				err := c.repo.SetStatus(ctx, key, entity.VoteStatusMuted)
 				if err != nil {
-					ch.out <- VoteResult{Error: err}
+					action.Reply <- VoteResult{Error: err}
 					continue
 				}
 
@@ -113,12 +109,12 @@ func (c *Coordinator) run(vote *entity.Vote, ch *voteChannels) {
 					slog.Int("count", len(updated.Voters)),
 				)
 
-				ch.out <- VoteResult{Vote: updated, Finished: true}
+				action.Reply <- VoteResult{Vote: updated, Finished: true}
 
 				return
 			}
 
-			ch.out <- VoteResult{Vote: updated, Finished: false}
+			action.Reply <- VoteResult{Vote: updated, Finished: false}
 		}
 	}
 }
