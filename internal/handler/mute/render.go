@@ -18,7 +18,7 @@ func formatMuteNotification(target, caller *telego.User, cmd *command) string {
 		mention.User(target), mention.User(caller), duration.Format(cmd.Duration))
 
 	if cmd.Reason != "" {
-		notification += "\n" + messages.MuteReason + ": " + html.EscapeString(cmd.Reason)
+		notification += fmt.Sprintf("\n%s: %s", messages.MuteReason, html.EscapeString(cmd.Reason))
 	}
 
 	return notification
