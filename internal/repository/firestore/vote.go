@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	fsdk "cloud.google.com/go/firestore"
@@ -81,6 +82,10 @@ func (r *VoteRepository) AddVoter(ctx context.Context, key entity.VoteKey, voter
 	err = snap.DataTo(&doc)
 	if err != nil {
 		return nil, fmt.Errorf("firestore: AddVoter decode: %w", err)
+	}
+
+	if slices.ContainsFunc(doc.Voters, func(v voterDoc) bool { return v.ID == voter.ID }) {
+		return fromDoc(doc), nil
 	}
 
 	doc.Voters = append(doc.Voters, toVoterDoc(voter))

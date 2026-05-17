@@ -105,6 +105,7 @@ func (h *handler) handleReport(ctx *th.Context, message telego.Message) error {
 		log.Error("Failed to start vote", slog.Any("error", err))
 		// Best-effort cleanup — remove the vote message we just posted.
 		_ = h.bot.DeleteMessage(ctx, tu.Delete(message.Chat.ChatID(), sent.MessageID))
+		h.replyInfraError(ctx, message)
 
 		return nil
 	}
