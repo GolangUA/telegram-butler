@@ -2,6 +2,9 @@ version: 3
 
 silent: true
 
+vars:
+  GOLANGCI_LINT_VERSION: v2.12.2
+
 tasks:
   default:
     desc: "Show available tasks"
@@ -29,19 +32,11 @@ tasks:
 
   format:
     desc: "Run formatters"
-    deps: [ install:gofumpt, install:gci ]
+    deps: [ install:lint ]
     aliases: [ fmt ]
     cmds:
       - echo "Running formatters..."
-      - go mod tidy
-      - gofumpt -l -w .
-      - |
-        gci write \
-        --skip-generated \
-        --section standard \
-        --section default \
-        --section "prefix(github.com/GolangUA/telegram-butler)" \
-        $(go list -f "{{`{{.Dir}}`}}" ./...)
+      - golangci-lint fmt
     sources:
       - ./**/*.go
       - go.mod
@@ -105,34 +100,10 @@ tasks:
     desc: "Install all tools"
     deps:
       - install:lint
-      - install:gofumpt
-      - install:gci
-      - install:mock
 
   install:lint:
     desc: "Install golangci-lint"
     cmds:
-      - curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.3
+      - curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin {{.GOLANGCI_LINT_VERSION}}
     status:
       - command -v golangci-lint
-
-  install:gofumpt:
-    desc: "Install gofumpt"
-    cmds:
-      - go install mvdan.cc/gofumpt@latest
-    status:
-      - command -v gofumpt
-
-  install:gci:
-    desc: "Install gci"
-    cmds:
-      - go install github.com/daixiang0/gci@latest
-    status:
-      - command -v gci
-
-  install:mock:
-    desc: "Install mockgen"
-    cmds:
-      - go install go.uber.org/mock/mockgen@latest
-    status:
-      - command -v mockgen

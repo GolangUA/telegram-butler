@@ -105,5 +105,5 @@ func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func()
 		return nil
 	}
 
-	return
+	return run, stop, nil
 }

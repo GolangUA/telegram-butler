@@ -23,7 +23,7 @@ func Register(bh *th.BotHandler) {
 
 type handler struct{}
 
-func (h *handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) error {
+func (*handler) callbackQuery(ctx *th.Context, query telego.CallbackQuery) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
