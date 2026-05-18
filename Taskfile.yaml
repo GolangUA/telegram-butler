@@ -12,9 +12,8 @@ tasks:
       - task --list-all
 
   pre-commit:
-    desc: "Run generators, formatters, linters, tests"
+    desc: "Run formatters, linters, tests"
     cmds:
-      - task: generate
       - task: format
       - task: lint
       - task: test
@@ -84,17 +83,6 @@ tasks:
     desc: "Run tests with a race flag"
     cmds:
       - go test -race -count=8 -failfast ./...
-
-  generate:
-    desc: "Generate (used for mock generation)"
-    deps: [ install:mock ]
-    cmds:
-      - echo "Running generators..."
-      - go generate ./...
-    sources:
-      - ./**/*.go
-      - go.mod
-      - go.sum
 
   install:
     desc: "Install all tools"
