@@ -8,7 +8,7 @@ import (
 
 const LevelTrace = slog.Level(-8)
 
-func Setup(logLevel string, logFormat string, addSource bool) *slog.Logger {
+func Setup(logLevel, logFormat string, addSource bool) *slog.Logger {
 	var level slog.Level
 	if strings.EqualFold(logLevel, "trace") {
 		level = LevelTrace

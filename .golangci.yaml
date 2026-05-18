@@ -6,20 +6,16 @@ linters:
     - contextcheck
     - cyclop
     - depguard
-    - dupl
     - err113
     - exhaustruct
     - gochecknoglobals
     - gochecknoinits
-    - godot
-    - godox
+    - gomodguard # deprecated
     - interfacebloat
     - ireturn
     - maintidx
     - mnd
-    - nakedret
     - nlreturn
-    - noctx
     - nonamedreturns
     - paralleltest
     - tagliatelle
@@ -38,6 +34,8 @@ linters:
       statements: 60
     gocognit:
       min-complexity: 40
+    goconst:
+      ignore-tests: true
     gocyclo:
       min-complexity: 40
     govet:
@@ -57,55 +55,30 @@ linters:
     revive:
       enable-all-rules: true
       rules:
-        - name: add-constant
-          disabled: true
-        - name: argument-limit
-          disabled: true
-        - name: banned-characters
-          disabled: true
-        - name: bare-return
-          disabled: true
-        - name: blank-imports
+        - name: add-constant # duplicate of goconst
           disabled: true
         - name: cognitive-complexity
           disabled: true
-        - name: comment-spacings
-          arguments:
-            - nolint
-          severity: warning
-          disabled: false
         - name: cyclomatic
           disabled: true
         - name: confusing-naming
           disabled: true
         - name: exported
           disabled: true
-        - name: import-alias-naming
-          disabled: true
-        - name: file-header
-          disabled: true
         - name: function-result-limit
           arguments:
             - 4
-          severity: warning
-          disabled: false
-        - name: function-length
+        - name: function-length # duplicate of funlen
           disabled: true
         - name: flag-parameter
           disabled: true
         - name: import-shadowing
           disabled: true
         - name: line-length-limit
-          disabled: true
+          disabled: true # duplicate of lll
         - name: max-public-structs
           disabled: true
-        - name: modifies-value-receiver
-          disabled: true
         - name: package-comments
-          disabled: true
-        - name: unused-receiver
-          disabled: true
-        - name: var-naming
           disabled: true
     sloglint:
       no-mixed-args: true
@@ -120,19 +93,12 @@ linters:
         - all
         - -ST1000
         - -ST1003
+    usetesting:
+      context-background: true
+      context-todo: true
+      os-temp-dir: true
   exclusions:
-    generated: lax
-    rules:
-      - linters:
-          - lll
-        source: '^//go:generate '
-      - linters:
-          - funlen
-        path: _test\.go$
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+    warn-unused: true
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
@@ -148,9 +114,5 @@ formatters:
         - standard
         - default
         - prefix(github.com/GolangUA/telegram-butler)
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+    gofumpt:
+      extra-rules: true
