@@ -18,7 +18,7 @@ import (
 	"github.com/GolangUA/telegram-butler/internal/module/telegram"
 )
 
-func setup(ctx context.Context, log *slog.Logger) (run func() error, stop func() error, err error) {
+func setup(ctx context.Context, log *slog.Logger) (run, stop func() error, err error) {
 	log.Info("Setting up the Bot")
 
 	botCfg := config.Bot()
