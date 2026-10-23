@@ -119,7 +119,7 @@ var adminStatuses = []string{
 	telego.MemberStatusAdministrator,
 }
 
-func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (bool, error) {
+func (*handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (bool, error) {
 	member, err := ctx.Bot().GetChatMember(ctx, &telego.GetChatMemberParams{
 		ChatID: chatID,
 		UserID: userID,
@@ -131,7 +131,7 @@ func (h *handler) isAdmin(ctx *th.Context, chatID telego.ChatID, userID int64) (
 	return slices.Contains(adminStatuses, member.MemberStatus()), nil
 }
 
-func (h *handler) restrictUser(
+func (*handler) restrictUser(
 	ctx *th.Context, chatID telego.ChatID, userID int64, duration time.Duration,
 ) error {
 	return ctx.Bot().RestrictChatMember(ctx, &telego.RestrictChatMemberParams{
@@ -179,7 +179,7 @@ func (h *handler) replyWithError(ctx *th.Context, log *slog.Logger, message tele
 	}
 }
 
-func (h *handler) sendAndCleanup(ctx *th.Context, message telego.Message, errText string) error {
+func (*handler) sendAndCleanup(ctx *th.Context, message telego.Message, errText string) error {
 	reply, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 		ChatID:          message.Chat.ChatID(),
 		MessageThreadID: message.MessageThreadID,

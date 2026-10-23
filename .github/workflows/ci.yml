@@ -28,13 +28,15 @@ jobs:
           go-version-file: "go.mod"
           check-latest: true
 
-      - name: Gofmt check
-        run: diff -u <(echo -n) <(gofmt -d .)
+      - name: Save GOLANGCI_LINT_VERSION to output from Taskfile.yaml
+        id: golangci-lint-version
+        run: echo "GOLANGCI_LINT_VERSION=$(grep 'GOLANGCI_LINT_VERSION:' Taskfile.yaml | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
       - name: Golangci Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.11.3
+          version: ${{ steps.golangci-lint-version.outputs.GOLANGCI_LINT_VERSION }}
+          args: --verbose
 
   test:
     name: Tests

@@ -22,7 +22,7 @@ func Register(bh *th.BotHandler) {
 
 type handler struct{}
 
-func (h *handler) rules(ctx *th.Context, message telego.Message) error {
+func (*handler) rules(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -48,7 +48,7 @@ func (h *handler) rules(ctx *th.Context, message telego.Message) error {
 	return nil
 }
 
-func (h *handler) usefulInfo(ctx *th.Context, message telego.Message) error {
+func (*handler) usefulInfo(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",
@@ -74,7 +74,7 @@ func (h *handler) usefulInfo(ctx *th.Context, message telego.Message) error {
 	return nil
 }
 
-func (h *handler) help(ctx *th.Context, message telego.Message) error {
+func (*handler) help(ctx *th.Context, message telego.Message) error {
 	log := logger.FromContext(ctx)
 
 	log = log.With(slog.Group("user",

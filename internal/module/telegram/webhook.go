@@ -43,7 +43,7 @@ type WebhookConfig struct {
 	URL   url.URL
 }
 
-// LogValue satisfies the slog.LogValuer interface for WebhookConfig
+// LogValue satisfies the slog.LogValuer interface for WebhookConfig.
 func (w WebhookConfig) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.String("bot_token", "[REDACTED]"),
