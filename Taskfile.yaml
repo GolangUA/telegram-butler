@@ -3,7 +3,7 @@ version: 3
 silent: true
 
 vars:
-  GOLANGCI_LINT_VERSION: v2.12.2
+  GOLANGCI_LINT_VERSION: v2.15.0
 
 tasks:
   default:

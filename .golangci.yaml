@@ -8,6 +8,7 @@ linters:
     - depguard
     - err113
     - exhaustruct
+    - exhaustruct_v5
     - gochecknoglobals
     - gochecknoinits
     - gomodguard # deprecated
@@ -115,4 +116,5 @@ formatters:
         - default
         - prefix(github.com/GolangUA/telegram-butler)
     gofumpt:
-      extra-rules: true
+      extra:
+        group-params: true
